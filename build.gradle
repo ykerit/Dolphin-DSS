@@ -26,6 +26,9 @@ dependencies {
 
     // Use JUnit test framework
     testImplementation 'junit:junit:4.12'
+
+    // local
+    compile fileTree(dir:'lib',includes:['*jar'])
 }
 
 application {
