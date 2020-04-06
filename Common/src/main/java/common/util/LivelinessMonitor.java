@@ -17,14 +17,18 @@ public abstract class LivelinessMonitor extends AbstractService {
     private final long monitorInterval;
     private final long timeout;
     private final long frequency;
+    private final CallBack callBack;
 
-    private static final long DEFAULT_EXPIRE_INTERVAL = 1000 * 60 * 5;
+    protected interface CallBack {
+        void handle(long id);
+    }
 
-    public LivelinessMonitor(String name, long monitorInterval, long timeout, long frequency) {
+    public LivelinessMonitor(String name, long monitorInterval, long timeout, long frequency, CallBack callBack) {
         super(name);
         this.monitorInterval = monitorInterval;
         this.timeout = timeout;
         this.frequency = frequency;
+        this.callBack = callBack;
     }
 
     @Override
@@ -59,13 +63,14 @@ public abstract class LivelinessMonitor extends AbstractService {
                             if (pair.second >= frequency) {
                                 // agent outline
                                 log.info("lose connect");
+                                callBack.handle(monitorID);
                             }
                         }
                     }
                 }
 
                 try {
-                    Thread.sleep(DEFAULT_EXPIRE_INTERVAL);
+                    Thread.sleep(monitorInterval);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

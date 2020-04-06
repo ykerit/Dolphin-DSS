@@ -32,4 +32,13 @@ public class AgentID implements Serializable {
     public int getWebPort() {
         return webPort;
     }
+
+    @Override
+    public String toString() {
+        return "AgentID{" +
+                "agentKey=" + agentKey +
+                ", localIP='" + localIP + '\'' +
+                ", webPort=" + webPort +
+                '}';
+    }
 }

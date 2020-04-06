@@ -3,11 +3,11 @@ package DolphinMaster;
 import DolphinMaster.agent_manage.AgentListManage;
 import DolphinMaster.agent_manage.AgentLivelinessMonitor;
 import DolphinMaster.agent_manage.AgentTrackerService;
+import DolphinMaster.security.SecurityManage;
 import DolphinMaster.user_service.ClientService;
 import common.event.EventDispatcher;
 import common.service.ChaosService;
 import config.Configuration;
-import org.greatfree.util.TerminateSignal;
 
 public class DolphinMaster extends ChaosService {
 
@@ -19,6 +19,7 @@ public class DolphinMaster extends ChaosService {
 
     private AgentLivelinessMonitor agentLivelinessMonitor;
     private AgentListManage agentListManage;
+    private SecurityManage securityManage;
 
     public DolphinMaster() {
         super(DolphinMaster.class.getName());
@@ -30,6 +31,9 @@ public class DolphinMaster extends ChaosService {
 
         this.dolphinContext.setConfiguration(new Configuration());
 
+        this.securityManage = new SecurityManage();
+        this.dolphinContext.setSecurityManage(this.securityManage);
+
         // -------------Client service start---------------
         this.clientService = createClientService();
         addService(this.clientService);
@@ -40,18 +44,17 @@ public class DolphinMaster extends ChaosService {
         this.dolphinContext.setDolphinDispatcher(this.eventDispatcher);
 
         // -------------Agent Tracker Service start
+        this.agentListManage = createAgentListManage();
+        addService(this.agentListManage);
 
         this.agentLivelinessMonitor = createAgentLivelinessMonitor();
         addService(this.agentLivelinessMonitor);
-
-        this.agentListManage = createAgentListManage();
-        addService(this.agentListManage);
 
         this.agentTrackerService = createAgentTrackerService();
         addService(this.agentTrackerService);
         this.dolphinContext.setAgentTrackerService(this.agentTrackerService);
 
-        // ---------------
+        // ---------------Dolphin Master
 
         this.dolphinContext.setDolphinMaster(this);
         super.serviceInit();
@@ -80,7 +83,7 @@ public class DolphinMaster extends ChaosService {
     }
 
     private AgentLivelinessMonitor createAgentLivelinessMonitor() {
-        return new AgentLivelinessMonitor(this.dolphinContext.getConfiguration());
+        return new AgentLivelinessMonitor(this.dolphinContext.getConfiguration(), this.agentListManage);
     }
 
     private AgentListManage createAgentListManage() {

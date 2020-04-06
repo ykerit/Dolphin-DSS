@@ -1,8 +1,8 @@
 package DolphinMaster.agent_manage;
 
 import DolphinMaster.DolphinContext;
+import common.event.ActionType;
 import common.struct.AgentID;
-import common.util.LivelinessMonitor;
 import common.util.SnowFlakeGenerator;
 import config.ServerConfig;
 import DolphinMaster.server_task.NodeTask;
@@ -59,13 +59,7 @@ public class AgentTrackerService extends AbstractService implements AgentTracker
     protected void serviceStop() {
         try {
             this.server.stop(2000L);
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (RemoteReadException e) {
+        } catch (ClassNotFoundException | IOException | InterruptedException | RemoteReadException e) {
             e.printStackTrace();
         }
         super.serviceStop();
@@ -74,13 +68,23 @@ public class AgentTrackerService extends AbstractService implements AgentTracker
     @Override
     public RegisterAgentResponse registerAgentManage(RegisterAgentRequest request) {
         AgentID agentID = request.getHost();
-        agentID.setAgentKey(SnowFlakeGenerator.GEN().nextId());
-        return new RegisterAgentResponse(agentID);
+        long id = SnowFlakeGenerator.GEN().nextId();
+        agentID.setAgentKey(id);
+        listManage.addInclude(id, agentID);
+        return new RegisterAgentResponse(agentID, dolphinContext
+                .getSecurityManage()
+                .genToken("agent"+id, getName(), 1000L * 60));
     }
 
     @Override
     public HeartBeatResponse agentHeartBeat(HeartBeatRequest request) {
+        if (dolphinContext.getSecurityManage().checkExpire(request.getToken())) {
+            return new HeartBeatResponse(ActionType.EXPIRE_TOKEN,
+                    dolphinContext
+                            .getSecurityManage()
+                            .genToken("agent" + request.getAgentID(), getName(), 1000L * 60));
+        }
         this.livelinessMonitor.addMonitored(request.getAgentID());
-        return new HeartBeatResponse();
+        return new HeartBeatResponse(ActionType.NONE, null);
     }
 }

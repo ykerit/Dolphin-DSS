@@ -1,8 +1,10 @@
 package agent;
 
+import agent.agent_status_report.ActionProcessor;
 import agent.agent_status_report.AgentHeartBeat;
 import agent.agent_status_report.AgentStatusPollService;
 import agent.event.HeartBeatEventType;
+import common.event.ActionType;
 import common.event.EventDispatcher;
 import common.service.ChaosService;
 import config.Configuration;
@@ -42,8 +44,9 @@ public class Agent extends ChaosService {
 
         this.agentContext.setAgent(this);
 
-        // ----------Heart Beat Event Register-------------
+        // ----------Event Register-------------
         this.eventDispatcher.register(HeartBeatEventType.class, new AgentHeartBeat(this.agentContext));
+        this.eventDispatcher.register(ActionType.class, new ActionProcessor(this.agentContext));
 
         super.serviceInit();
     }

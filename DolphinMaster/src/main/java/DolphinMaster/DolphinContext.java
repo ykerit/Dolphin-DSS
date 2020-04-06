@@ -1,6 +1,7 @@
 package DolphinMaster;
 
 import DolphinMaster.agent_manage.AgentTrackerService;
+import DolphinMaster.security.SecurityManage;
 import common.context.ServiceContext;
 import common.event.EventDispatcher;
 import common.service.ServiceState;
@@ -10,6 +11,7 @@ public class DolphinContext {
     private ServiceContext serviceContext;
     private DolphinMaster dolphinMaster;
     private AgentTrackerService agentTrackerService;
+    private SecurityManage securityManage;
 
     public DolphinContext() {
         this.serviceContext = new ServiceContext();
@@ -58,5 +60,13 @@ public class DolphinContext {
 
     protected void setAgentTrackerService(AgentTrackerService agentTrackerService) {
         this.agentTrackerService = agentTrackerService;
+    }
+
+    public SecurityManage getSecurityManage() {
+        return securityManage;
+    }
+
+    public void setSecurityManage(SecurityManage securityManage) {
+        this.securityManage = securityManage;
     }
 }

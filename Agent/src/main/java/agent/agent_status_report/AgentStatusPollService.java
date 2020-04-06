@@ -42,10 +42,10 @@ public class AgentStatusPollService extends AbstractService {
     @Override
     protected void serviceStart() {
         registerDolphinMaster();
-        if (isRegistered) {
+        if (isRegistered && agentContext.getToken() != null) {
             this.agentContext.getAgentDispatcher().getEventProcessor()
                     .process(new AgentHeartBeatEvent(HeartBeatEventType.T_START,
-                            new HeartBeatRequest(localHost.getAgentKey())));
+                            new HeartBeatRequest(localHost.getAgentKey(), agentContext.getToken())));
         }
         super.serviceStart();
     }
@@ -55,7 +55,6 @@ public class AgentStatusPollService extends AbstractService {
                 new RegisterAgentRequest(localHost,
                         ResourceUsage.getCpuUsage(), ResourceUsage.getMemoryUsage());
         RegisterAgentResponse registerAgentResponse = null;
-        log.info("Remote IP: {} Port: {}", agentContext.getRemote().getIP(), agentContext.getRemote().getPort());
         try {
             registerAgentResponse = (RegisterAgentResponse) StandaloneClient.CS()
                     .read(agentContext.getRemote().getIP(),
@@ -65,7 +64,9 @@ public class AgentStatusPollService extends AbstractService {
             e.printStackTrace();
         }
         localHost = registerAgentResponse.getAgentID();
-        log.info("Node key: {}", localHost.getAgentKey());
+        String token = registerAgentResponse.getToken();
+        agentContext.setToken(token);
+        log.info("Node key: {} token; {}", localHost.getAgentKey(), token);
         this.agentContext.setAgentID(localHost);
         isRegistered = true;
     }

@@ -12,6 +12,7 @@ public class AgentContext {
     private Agent agent;
     private AgentStatusPollService agentStatusPollService;
     private AgentID agentID;
+    private String token;
 
     public AgentContext() {
         this.serviceContext = new ServiceContext();
@@ -67,5 +68,13 @@ public class AgentContext {
 
     public AgentID getAgentID() {
         return agentID;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
     }
 }

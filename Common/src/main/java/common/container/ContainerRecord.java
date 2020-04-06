@@ -1,8 +1,10 @@
 package common.container;
 
 enum Status {
+    INIT,
     RUNNING,
-    STOP
+    STOP,
+    IDLE
 }
 
 // record container info

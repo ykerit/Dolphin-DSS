@@ -10,16 +10,9 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ContainerManage {
     private ConcurrentHashMap<String, ContainerRecord> containers;
 
-    private ContainerManage() {}
 
-    private static ContainerManage instance = new ContainerManage();
-
-    public ContainerManage Init() {
+    public ContainerManage() {
         this.containers = new ConcurrentHashMap<>();
-        if (instance == null) {
-            instance = new ContainerManage();
-        }
-        return instance;
     }
 
     // create container && initialize container.
@@ -30,7 +23,7 @@ public class ContainerManage {
         containerRecord.container = container;
         containerRecord.id = ID;
         containerRecord.name = containerName;
-        containerRecord.status = Status.RUNNING;
+        containerRecord.status = Status.IDLE;
         containerRecord.createTime =
                 new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
         this.containers.put(ID, containerRecord);
@@ -40,6 +33,14 @@ public class ContainerManage {
             e.printStackTrace();
         }
         return ID;
+    }
+
+    public void execute(String containerId, int pid) throws IOException {
+        ContainerRecord record = null;
+        if ((record = containers.get(containerId)) != null) {
+            record.container.apply(pid);
+            record.status = Status.RUNNING;
+        }
     }
 
     // Destroy container according to ID.
