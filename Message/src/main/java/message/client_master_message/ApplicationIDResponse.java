@@ -4,17 +4,13 @@ import message.MessageID;
 import org.greatfree.message.ServerMessage;
 
 public class ApplicationIDResponse extends ServerMessage {
-    private long ID;
+    private long applicationId;
     public ApplicationIDResponse(long id) {
         super(MessageID.APPLICATION_ID_RESPONSE);
-        this.ID = id;
+        this.applicationId = id;
     }
 
-    public long getID() {
-        return ID;
-    }
-
-    public void setID(long ID) {
-        this.ID = ID;
+    public long getApplicationId() {
+        return applicationId;
     }
 }

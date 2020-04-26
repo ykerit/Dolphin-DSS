@@ -1,6 +1,6 @@
 package agent;
 
-import agent.agent_status_report.AgentStatusPollService;
+import agent.agentstatusreport.AgentStatusPollService;
 import common.context.ServiceContext;
 import common.event.EventDispatcher;
 import common.struct.AgentID;

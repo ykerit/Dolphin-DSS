@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-class Container {
+public class Container {
     private ResourceLimit resourceLimit;
     private String hierarchy;
     private HashMap<String, String> initMap;
@@ -52,6 +52,7 @@ class Container {
             buff.close();
         }
     }
+
     public void remove() {
         for (Map.Entry<String, String> entry : this.initMap.entrySet()) {
             String path = Tools.FindSubsystemPath(entry.getKey(), this.hierarchy, false);

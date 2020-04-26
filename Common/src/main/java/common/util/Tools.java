@@ -15,8 +15,8 @@ public class Tools {
         String line = null;
         while ((line = buffer.readLine()) != null) {
             String[] fields = line.split(" ");
-            String[] last = fields[fields.length-1].split(",");
-            for(String opt : last) {
+            String[] last = fields[fields.length - 1].split(",");
+            for (String opt : last) {
                 if (opt.equals(subsystem)) {
                     buffer.close();
                     return fields[4];
@@ -43,7 +43,22 @@ public class Tools {
     }
 
     public static String GenerateContainerID() {
-        long prefix = (long) ((Math.random()+1) * reactor);
+        long prefix = (long) ((Math.random() + 1) * reactor);
         return System.currentTimeMillis() + String.valueOf(prefix).substring(1);
+    }
+
+    public static String file2String(String path) {
+        StringBuilder result = new StringBuilder();
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(new File(path)));//构造一个BufferedReader类来读取文件
+            String s = null;
+            while ((s = br.readLine()) != null) {
+                result.append(s);
+            }
+            br.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return result.toString();
     }
 }

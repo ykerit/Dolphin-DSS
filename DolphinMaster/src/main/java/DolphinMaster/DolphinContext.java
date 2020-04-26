@@ -1,6 +1,6 @@
 package DolphinMaster;
 
-import DolphinMaster.agent_manage.AgentTrackerService;
+import DolphinMaster.agentmanage.AgentTrackerService;
 import DolphinMaster.security.SecurityManage;
 import common.context.ServiceContext;
 import common.event.EventDispatcher;

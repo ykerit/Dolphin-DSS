@@ -25,8 +25,4 @@ public class RegisterAgentResponse extends ServerMessage {
     public AgentID getAgentID() {
         return agentID;
     }
-
-    public void setAgentID(AgentID agentID) {
-        this.agentID = agentID;
-    }
 }

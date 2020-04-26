@@ -1,7 +1,7 @@
 package agent;
 
 import common.service.AbstractService;
-import config.ServerConfig;
+import config.DefaultServerConfig;
 import org.greatfree.exceptions.RemoteReadException;
 import org.greatfree.server.container.ServerContainer;
 
@@ -17,7 +17,7 @@ public class ServerService extends AbstractService {
     @Override
     protected void serviceInit() {
         try {
-            this.serverContainer = new ServerContainer(ServerConfig.AGENT_PORT, new AgentTask());
+            this.serverContainer = new ServerContainer(DefaultServerConfig.AGENT_PORT, new AgentTask());
         } catch (IOException e) {
             e.printStackTrace();
         }

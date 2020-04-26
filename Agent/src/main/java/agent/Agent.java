@@ -1,9 +1,9 @@
 package agent;
 
-import agent.agent_status_report.ActionProcessor;
-import agent.agent_status_report.AgentHeartBeat;
-import agent.agent_status_report.AgentStatusPollService;
-import agent.event.HeartBeatEventType;
+import agent.agentstatusreport.ActionProcessor;
+import agent.agentstatusreport.AgentHeartBeat;
+import agent.agentstatusreport.AgentStatusPollService;
+import agent.agentstatusreport.HeartBeatEventType;
 import common.event.ActionType;
 import common.event.EventDispatcher;
 import common.service.ChaosService;

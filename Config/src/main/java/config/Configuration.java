@@ -23,6 +23,10 @@ public class Configuration {
 
     private static final String AGENT_SEND_HEART_BEAT_PERIOD = "agent_send_heart_beat_period";
 
+    private static final String CEPH_CONF_DIR = "ceph_conf_dir";
+
+    private static final String APP_WORK_PRIORITY = "app_work_priority";
+
     private ResourceBundle resourceBundle;
 
     private long agentMonitorInterval;
@@ -40,6 +44,10 @@ public class Configuration {
 
     private long agentSendHeartBeatPeriod;
 
+    private String cephConfDir;
+
+    private Integer appWorkPriority;
+
     public long getAgentSendHeartBeatPeriod() {
         return agentSendHeartBeatPeriod;
     }
@@ -47,6 +55,14 @@ public class Configuration {
     public Configuration() {
         resourceBundle = ResourceBundle.getBundle(DOLPHIN_MASTER);
         configure();
+    }
+
+    public String getCephConfDir() {
+        return cephConfDir;
+    }
+
+    public Integer getAppWorkPriority() {
+        return appWorkPriority;
     }
 
     void configure() {
@@ -64,6 +80,10 @@ public class Configuration {
         dolphinMasterAdminHost = getIPAddress(DOLPHIN_MASTER_ADMIN_PORT);
 
         agentSendHeartBeatPeriod = Long.parseLong(resourceBundle.getString(AGENT_SEND_HEART_BEAT_PERIOD));
+
+        cephConfDir = resourceBundle.getString(CEPH_CONF_DIR);
+
+        appWorkPriority = Integer.parseInt(resourceBundle.getString(APP_WORK_PRIORITY));
     }
 
     public long getAgentMonitorInterval() {
