@@ -7,11 +7,11 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.*;
 
-public class FileOperation {
-    private static final Logger log = LogManager.getLogger(FileOperation.class.getName());
+public class RadosFileOperation {
+    private static final Logger log = LogManager.getLogger(RadosFileOperation.class.getName());
     private final IoCTX ioCTX;
 
-    public FileOperation(IoCTX ioCTX) {
+    public RadosFileOperation(IoCTX ioCTX) {
         this.ioCTX = ioCTX;
     }
 

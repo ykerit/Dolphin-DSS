@@ -12,6 +12,7 @@ public final class AppWorkStartContext {
     private final String workspace;
     // AppWork need resource dir
     private final List<String> appLocalDirs;
+    private final String appWorkScriptPath;
     // application file dir
     private final List<String> fileCacheDirs;
 
@@ -20,6 +21,7 @@ public final class AppWorkStartContext {
         private String user;
         private String appId;
         private String workspace;
+        private String appWorkScriptPath;
         private List<String> appLocalDirs;
         private List<String> fileCacheDirs;
 
@@ -56,6 +58,11 @@ public final class AppWorkStartContext {
             return this;
         }
 
+        public Builder setAppWorkScriptPath(String appWorkScriptPath) {
+            this.appWorkScriptPath = appWorkScriptPath;
+            return this;
+        }
+
         public AppWorkStartContext build() {
             return new AppWorkStartContext(this);
         }
@@ -67,6 +74,7 @@ public final class AppWorkStartContext {
         this.appWork = builder.appWork;
         this.user = builder.user;
         this.fileCacheDirs = builder.fileCacheDirs;
+        this.appWorkScriptPath = builder.appWorkScriptPath;
         this.workspace = builder.workspace;
     }
 
@@ -92,5 +100,9 @@ public final class AppWorkStartContext {
 
     public List<String> getFileCacheDirs() {
         return fileCacheDirs;
+    }
+
+    public String getAppWorkScriptPath() {
+        return appWorkScriptPath;
     }
 }

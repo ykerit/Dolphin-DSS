@@ -17,9 +17,6 @@ public abstract class Shell {
 
     public static final String USER_NAME_COMMAND = "whoami";
 
-    // in the future, object maybe save something about Shell
-    private static final Map<Shell, Object> shells = Collections.synchronizedMap(new WeakHashMap<Shell, Object>());
-
     public static String[] getSetPermissionCommand(String perm, boolean recursive) {
         if (recursive) {
             return new String[]{"chmod", "-R", perm};
@@ -40,9 +37,17 @@ public abstract class Shell {
         return new String[]{"readlink", link};
     }
 
+    // kill -0 $pid, not send signal, if process exist return 0. contrary, return 1
+    public static String[] getCheckProcessIsAliveCommand(int pid) {
+        return getSignalKillCommand(0, pid);
+    }
+
     public static String[] getSignalKillCommand(int code, int pid) {
         return new String[]{"bash", "-c", "kill -" + code + " " + pid};
     }
+
+    // in the future, object maybe save something about Shell
+    private static final Map<Shell, Object> shells = Collections.synchronizedMap(new WeakHashMap<Shell, Object>());
 
     // refresh interval
     private long interval;
@@ -148,22 +153,22 @@ public abstract class Shell {
 
         errThread.start();
 
-        parseExecResult(inReader);
-
-        // clear input stream and buffer
-        String line = inReader.readLine();
-        while (line != null) {
-            line = inReader.readLine();
-        }
-
         try {
+            parseExecResult(inReader);
+
+            // clear input stream and buffer
+            String line = inReader.readLine();
+            while (line != null) {
+                line = inReader.readLine();
+            }
+
             exitCode = process.waitFor();
             joinThread(errThread);
             shutdown.set(true);
             if (exitCode != 0) {
                 throw new ExitCodeException(exitCode, errMsg.toString());
             }
-        } catch (InterruptedException | ExitCodeException e) {
+        } catch (InterruptedException e) {
             e.printStackTrace();
         } finally {
             if (timeoutTimer != null) {
@@ -319,11 +324,11 @@ public abstract class Shell {
         }
     }
 
-    public static String execCommand(String ... cmd) throws IOException {
+    public static String execCommand(String... cmd) throws IOException {
         return execCommand(null, cmd, 0L);
     }
 
-    public static String execCommand(Map<String, String> env, String ... cmd) throws IOException {
+    public static String execCommand(Map<String, String> env, String... cmd) throws IOException {
         return execCommand(env, cmd, 0L);
     }
 

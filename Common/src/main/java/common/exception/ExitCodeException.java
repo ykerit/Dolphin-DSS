@@ -1,6 +1,8 @@
 package common.exception;
 
-public class ExitCodeException extends Exception{
+import java.io.IOException;
+
+public class ExitCodeException extends IOException {
     private final int exitCode;
 
     public ExitCodeException(int exitCode, String message) {

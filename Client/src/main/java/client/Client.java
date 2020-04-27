@@ -5,7 +5,7 @@ import common.context.AppMasterSpec;
 import common.context.ApplicationSubmission;
 import common.service.ChaosService;
 import common.util.CephService;
-import common.util.FileOperation;
+import common.util.RadosFileOperation;
 import config.Configuration;
 import message.client_master_message.ApplicationIDRequest;
 import message.client_master_message.ApplicationIDResponse;
@@ -69,7 +69,7 @@ public class Client extends ChaosService {
         ApplicationIDResponse response = getApplicationID();
         String applicationName = null;
         try {
-            FileOperation operation = new FileOperation(this.cephService.getIoContext("rbd"));
+            RadosFileOperation operation = new RadosFileOperation(this.cephService.getIoContext("rbd"));
             applicationName = operation.write(applicationPath, response.getApplicationId());
             log.debug("application: ${}", applicationName);
         } catch (RadosException e) {

@@ -1,17 +1,23 @@
 package agent.appworkmanage;
 
 import agent.AgentContext;
+import agent.context.AppWorkAlivenessContext;
 import agent.context.AppWorkSignalContext;
 import agent.context.AppWorkStartContext;
 import agent.context.LocalizerStartContext;
 import config.Configuration;
 import config.DolphinConfiguration;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public abstract class AppWorkExecute {
+    private static final Logger log = LogManager.getLogger(AppWorkExecute.class.getName());
+
     public abstract void init(AgentContext context);
 
     public void start() {
@@ -31,19 +37,20 @@ public abstract class AppWorkExecute {
     // Relaunch AppWork on the node, This is a blocking call and return only AppWork exit
     public abstract int relaunchAppWork(AppWorkStartContext ctx);
 
-    public abstract boolean signalAppWork(AppWorkSignalContext ctx);
+    public abstract boolean signalAppWork(AppWorkSignalContext ctx) throws IOException;
 
     public abstract boolean reapAppWork();
 
     // C or C++ program
     public abstract void symLink(String target, String symlink);
 
-    public abstract boolean isAppWorkAlive();
+    public abstract boolean isAppWorkAlive(AppWorkAlivenessContext ctx) throws IOException;
 
     public enum Signal {
         NULL(0, "NULL"),
-        QUIT(1, "SIGQUIT"),
-        KILL(2, "SIGKILL");
+        QUIT(3, "SIGQUIT"),
+        KILL(9, "SIGKILL"),
+        TERM(15, "SIGTERM");
 
         private final int val;
         private final String str;
@@ -120,7 +127,12 @@ public abstract class AppWorkExecute {
                         .setSignal(signal).build());
             } catch (InterruptedException e) {
                 interrupt();
-                e.printStackTrace();
+            } catch (IOException e) {
+                String msg = "Exception when user "
+                        + user + "killing task "
+                        + pid + "in processKiller: "
+                        + e.getMessage();
+                log.warn(msg);
             }
         }
     }
