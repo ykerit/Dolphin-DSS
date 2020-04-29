@@ -7,7 +7,7 @@ import java.util.List;
 public final class AppWorkStartContext {
     private final AppWork appWork;
     private final String user;
-    private final String appId;
+    private final long appId;
     // AppWork running workspace
     private final String workspace;
     // AppWork need resource dir
@@ -19,7 +19,7 @@ public final class AppWorkStartContext {
     public static final class Builder {
         private AppWork appWork;
         private String user;
-        private String appId;
+        private long appId;
         private String workspace;
         private String appWorkScriptPath;
         private List<String> appLocalDirs;
@@ -38,7 +38,7 @@ public final class AppWorkStartContext {
             return this;
         }
 
-        public Builder setAppId(String appId) {
+        public Builder setAppId(long appId) {
             this.appId = appId;
             return this;
         }
@@ -86,7 +86,7 @@ public final class AppWorkStartContext {
         return user;
     }
 
-    public String getAppId() {
+    public long getAppId() {
         return appId;
     }
 

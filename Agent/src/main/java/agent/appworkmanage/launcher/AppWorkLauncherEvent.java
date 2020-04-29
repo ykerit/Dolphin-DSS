@@ -1,4 +1,4 @@
-package agent.appworkmanage.appworklauncher;
+package agent.appworkmanage.launcher;
 
 import agent.appworkmanage.AppWork;
 import common.event.AbstractEvent;

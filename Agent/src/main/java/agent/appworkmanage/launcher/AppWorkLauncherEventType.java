@@ -1,4 +1,4 @@
-package agent.appworkmanage.appworklauncher;
+package agent.appworkmanage.launcher;
 
 public enum  AppWorkLauncherEventType {
     LAUNCHER_APP_WORK,

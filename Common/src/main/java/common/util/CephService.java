@@ -32,7 +32,7 @@ public class CephService extends AbstractService {
 	protected void serviceInit() {
 		cluster = new Rados("admin");
 		File file = new File(configuration.getCephConfDir());
-		log.debug("ceph path :${}", configuration.getCephConfDir());
+		log.debug("ceph path :{}", configuration.getCephConfDir());
 		try {
 			cluster.confReadFile(file);
 		} catch (RadosException e) {
@@ -65,7 +65,7 @@ public class CephService extends AbstractService {
 		String[] poolList = cluster.poolList();
 		IoCTX ioCTX = null;
 		for (String var : poolList) {
-			log.debug("pool: ${}", var);
+			log.debug("pool: {}", var);
 			if (var.equals(pool)) {
 				ioCTX = cluster.ioCtxCreate(pool);
 				ioCTXList.add(ioCTX);

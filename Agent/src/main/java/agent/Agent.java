@@ -6,6 +6,7 @@ import agent.agentstatusreport.AgentStatusPollService;
 import agent.agentstatusreport.HeartBeatEventType;
 import common.event.ActionType;
 import common.event.EventDispatcher;
+import common.event.EventProcessor;
 import common.service.ChaosService;
 import config.Configuration;
 import org.greatfree.client.StandaloneClient;
@@ -13,7 +14,7 @@ import org.greatfree.exceptions.RemoteReadException;
 
 import java.io.IOException;
 
-public class Agent extends ChaosService {
+public class Agent extends ChaosService implements EventProcessor<AgentEvent> {
     private AgentContext agentContext;
     private EventDispatcher eventDispatcher;
     private AgentStatusPollService agentStatusPollService;
@@ -69,5 +70,10 @@ public class Agent extends ChaosService {
 
     private AgentStatusPollService createAgentStatusPollService() {
         return new AgentStatusPollService(this.agentContext);
+    }
+
+    @Override
+    public void process(AgentEvent event) {
+
     }
 }

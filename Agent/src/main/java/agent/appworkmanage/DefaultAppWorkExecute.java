@@ -13,6 +13,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.List;
 
 public class DefaultAppWorkExecute extends AppWorkExecute{
     private static final Logger log = LogManager.getLogger(DefaultAppWorkExecute.class);
@@ -53,8 +54,23 @@ public class DefaultAppWorkExecute extends AppWorkExecute{
     }
 
     @Override
-    public boolean signalAppWork(AppWorkSignalContext ctx) {
-        return false;
+    public boolean signalAppWork(AppWorkSignalContext ctx) throws IOException {
+        String user = ctx.getUser();
+        int pid = ctx.getPid();
+        Signal signal = ctx.getSignal();
+        log.debug("send signal {} to pid: {} user: {}", signal.getValue(), pid, signal);
+        if (!appWorkIsAlive(pid)) {
+            return false;
+        }
+        try {
+            killAppWork(pid, signal);
+        } catch (IOException e) {
+            if (!appWorkIsAlive(pid)) {
+                return false;
+            }
+            throw e;
+        }
+        return true;
     }
 
     @Override
@@ -85,5 +101,9 @@ public class DefaultAppWorkExecute extends AppWorkExecute{
 
     protected void killAppWork(int pid, Signal signal) throws IOException {
         new ShellCommandExecutor(Shell.getSignalKillCommand(signal.getValue(), pid)).execute();
+    }
+
+    void createAppDirs(List<String> localDirs, String user, long appId) {
+
     }
 }

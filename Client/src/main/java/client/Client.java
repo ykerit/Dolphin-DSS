@@ -71,7 +71,7 @@ public class Client extends ChaosService {
         try {
             RadosFileOperation operation = new RadosFileOperation(this.cephService.getIoContext("rbd"));
             applicationName = operation.write(applicationPath, response.getApplicationId());
-            log.debug("application: ${}", applicationName);
+            log.debug("application: {}", applicationName);
         } catch (RadosException e) {
             e.printStackTrace();
         }

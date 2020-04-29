@@ -2,12 +2,12 @@ package agent.context;
 
 public final class LocalizerStartContext {
     private final String user;
-    private final String appId;
+    private final long appId;
     private final String localDirs;
 
     public static final class Builder {
         private String user;
-        private String appId;
+        private long appId;
         private String localDirs;
 
         public Builder() {}
@@ -17,7 +17,7 @@ public final class LocalizerStartContext {
             return this;
         }
 
-        public Builder setAppId(String appId) {
+        public Builder setAppId(long appId) {
             this.appId = appId;
             return this;
         }
@@ -42,7 +42,7 @@ public final class LocalizerStartContext {
         return user;
     }
 
-    public String getAppId() {
+    public long getAppId() {
         return appId;
     }
 

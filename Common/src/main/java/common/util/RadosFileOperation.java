@@ -16,7 +16,7 @@ public class RadosFileOperation {
     }
 
     public String write(String path, long appID) {
-        log.info("jar file: ${}", path);
+        log.info("jar file: {}", path);
         File file = new File(path);
         String name = file.getName();
         // now use bio then will use aio

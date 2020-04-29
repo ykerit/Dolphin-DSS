@@ -41,7 +41,7 @@ public class AppWork {
             container.init();
         } catch (IOException e) {
             e.printStackTrace();
-            log.error("AppWork: ${}, container init failed: ${}", id, e.getMessage());
+            log.error("AppWork: {}, container init failed: {}", id, e.getMessage());
         }
     }
 
@@ -50,7 +50,7 @@ public class AppWork {
             try {
                 container.apply(pid);
             } catch (IOException e) {
-                log.error("AppWork: ${}, container work failed: ${}", id, e.getMessage());
+                log.error("AppWork: {}, container work failed: {}", id, e.getMessage());
                 e.printStackTrace();
             }
             status = Status.RUNNING;
