@@ -1,7 +1,7 @@
 package agent.context;
 
-import agent.appworkmanage.AppWork;
-import agent.appworkmanage.AppWorkExecute.Signal;
+import agent.appworkmanage.AppWorkExecutor.Signal;
+import agent.appworkmanage.appwork.AppWork;
 
 public class AppWorkSignalContext {
     private final AppWork appWork;
@@ -15,7 +15,8 @@ public class AppWorkSignalContext {
         private int pid;
         private Signal signal;
 
-        public Builder() {}
+        public Builder() {
+        }
 
         public Builder setAppWork(AppWork appWork) {
             this.appWork = appWork;

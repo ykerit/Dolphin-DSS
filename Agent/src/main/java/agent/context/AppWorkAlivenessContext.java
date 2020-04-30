@@ -1,6 +1,6 @@
 package agent.context;
 
-import agent.appworkmanage.AppWork;
+import agent.appworkmanage.appwork.AppWork;
 
 public class AppWorkAlivenessContext {
     private final AppWork appWork;
@@ -12,7 +12,8 @@ public class AppWorkAlivenessContext {
         private String user;
         private int pid;
 
-        public Builder() {}
+        public Builder() {
+        }
 
         public Builder setAppWork(AppWork appWork) {
             this.appWork = appWork;

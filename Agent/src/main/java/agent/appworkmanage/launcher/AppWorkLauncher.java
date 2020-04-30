@@ -1,5 +1,10 @@
 package agent.appworkmanage.launcher;
 
-public class AppWorkLauncher {
+import java.util.concurrent.Callable;
 
+public class AppWorkLauncher implements Callable<Integer> {
+    @Override
+    public Integer call() throws Exception {
+        return null;
+    }
 }

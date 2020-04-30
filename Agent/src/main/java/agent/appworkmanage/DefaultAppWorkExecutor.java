@@ -15,10 +15,10 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 
-public class DefaultAppWorkExecute extends AppWorkExecute{
-    private static final Logger log = LogManager.getLogger(DefaultAppWorkExecute.class);
+public class DefaultAppWorkExecutor extends AppWorkExecutor {
+    private static final Logger log = LogManager.getLogger(DefaultAppWorkExecutor.class);
 
-    public DefaultAppWorkExecute() {
+    public DefaultAppWorkExecutor() {
 
     }
 

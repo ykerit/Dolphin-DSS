@@ -1,6 +1,7 @@
 package agent.appworkmanage;
 
 import agent.AgentContext;
+import agent.appworkmanage.appwork.AppWork;
 import agent.context.AppWorkAlivenessContext;
 import agent.context.AppWorkSignalContext;
 import agent.context.AppWorkStartContext;
@@ -15,8 +16,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public abstract class AppWorkExecute {
-    private static final Logger log = LogManager.getLogger(AppWorkExecute.class.getName());
+public abstract class AppWorkExecutor {
+    private static final Logger log = LogManager.getLogger(AppWorkExecutor.class.getName());
 
     public abstract void init(AgentContext context);
 
@@ -97,20 +98,20 @@ public abstract class AppWorkExecute {
         private final int pid;
         private final long delay;
         private final Signal signal;
-        private final AppWorkExecute appWorkExecute;
+        private final AppWorkExecutor appWorkExecutor;
 
         public WaitProcessKiller(AppWork appWork,
                                  String user,
                                  int pid,
                                  long delay,
                                  Signal signal,
-                                 AppWorkExecute appWorkExecute) {
+                                 AppWorkExecutor appWorkExecutor) {
             this.appWork = appWork;
             this.user = user;
             this.pid = pid;
             this.delay = delay;
             this.signal = signal;
-            this.appWorkExecute = appWorkExecute;
+            this.appWorkExecutor = appWorkExecutor;
 
             setName("killer for pid: " + pid);
             setDaemon(false);
@@ -120,7 +121,7 @@ public abstract class AppWorkExecute {
         public void run() {
             try {
                 Thread.sleep(delay);
-                appWorkExecute.signalAppWork(new AppWorkSignalContext.Builder()
+                appWorkExecutor.signalAppWork(new AppWorkSignalContext.Builder()
                         .setAppWork(appWork)
                         .setPid(pid)
                         .setUser(user)

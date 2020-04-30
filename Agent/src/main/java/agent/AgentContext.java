@@ -1,29 +1,31 @@
 package agent;
 
 import agent.agentstatusreport.AgentStatusPollService;
+import agent.application.Application;
 import common.context.ServiceContext;
 import common.event.EventDispatcher;
 import common.struct.AgentID;
 import config.Configuration;
 import org.greatfree.util.IPAddress;
 
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
 public class AgentContext {
     private ServiceContext serviceContext;
     private Agent agent;
-    private AgentStatusPollService agentStatusPollService;
     private AgentID agentID;
+    private AgentStatusPollService agentStatusPollService;
+    private ConcurrentMap<Long, Application> applications = new ConcurrentHashMap<>();
+
+    public ConcurrentMap<Long, Application> getApplications() {
+        return applications;
+    }
+
     private String token;
 
     public AgentContext() {
         this.serviceContext = new ServiceContext();
-    }
-
-    public ServiceContext getServiceContext() {
-        return serviceContext;
-    }
-
-    public void setServiceContext(ServiceContext serviceContext) {
-        this.serviceContext = serviceContext;
     }
 
     public Agent getAgent() {
@@ -32,14 +34,6 @@ public class AgentContext {
 
     public void setAgent(Agent agent) {
         this.agent = agent;
-    }
-
-    public AgentStatusPollService getAgentStatusPollService() {
-        return agentStatusPollService;
-    }
-
-    public void setAgentStatusPollService(AgentStatusPollService agentStatusPollService) {
-        this.agentStatusPollService = agentStatusPollService;
     }
 
     public EventDispatcher getAgentDispatcher() {

@@ -1,12 +1,12 @@
 package agent.appworkmanage.launcher;
 
-import agent.appworkmanage.AppWork;
+import agent.appworkmanage.appwork.AppWork;
 import common.event.AbstractEvent;
 
-public class AppWorkLauncherEvent extends AbstractEvent<AppWorkLauncherEventType> {
+public class AppWorkLauncherPoolEvent extends AbstractEvent<AppWorkLauncherPoolEventType> {
     private final AppWork appWork;
 
-    public AppWorkLauncherEvent(AppWork appWork, AppWorkLauncherEventType eventType) {
+    public AppWorkLauncherPoolEvent(AppWork appWork, AppWorkLauncherPoolEventType eventType) {
         super(eventType);
         this.appWork = appWork;
     }
