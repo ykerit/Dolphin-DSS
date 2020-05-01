@@ -1,5 +1,6 @@
 package agent.appworkmanage.appwork;
 
+import agent.context.AppWorkLaunchContext;
 import common.event.EventDispatcher;
 import common.resource.Resource;
 import common.util.Tools;
@@ -28,11 +29,14 @@ public class AppWorkImp implements AppWork {
     private long appWorkLaunchStartTime;
     private AppWorkExecType type;
 
+    private volatile AppWorkLaunchContext launchContext;
+
     private Path workspace;
 
 
-    public AppWorkImp(EventDispatcher dispatcher, long startTime, String user, long appId) {
+    public AppWorkImp(EventDispatcher dispatcher, AppWorkLaunchContext context, long startTime, String user, long appId) {
         this.dispatcher = dispatcher;
+        this.launchContext = context;
         this.appWorkId = Tools.GenerateContainerID();
         this.exitCode = 0;
         this.user = user;
@@ -67,6 +71,11 @@ public class AppWorkImp implements AppWork {
     @Override
     public String getUser() {
         return null;
+    }
+
+    @Override
+    public AppWorkLaunchContext getAppWorkLaunchContext() {
+        return launchContext;
     }
 
     @Override
@@ -122,5 +131,10 @@ public class AppWorkImp implements AppWork {
     @Override
     public boolean isRecovering() {
         return false;
+    }
+
+    @Override
+    public void process(AppWorkEvent event) {
+
     }
 }

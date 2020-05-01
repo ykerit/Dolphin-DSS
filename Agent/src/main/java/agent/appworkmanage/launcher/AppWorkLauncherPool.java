@@ -51,9 +51,13 @@ public class AppWorkLauncherPool extends AbstractService implements AbstractAppW
         switch (event.getType()) {
             case LAUNCHER_APP_WORK:
                 Application application = context.getApplications().get(appWork.getAppId());
-                AppWorkLauncher launcher = new AppWorkLauncher();
+                AppWorkLauncher launcher =
+                        new AppWorkLauncher(context, dispatcher, executor, application, appWork, appWorkManager);
+                launcherPool.submit(launcher);
+                running.put(id, launcher);
                 break;
             case RELAUNCHED_APP_WORK:
+                application = context.getApplications().get(appWork.getAppId());
                 break;
             case CLEANUP_APP_WORK:
                 break;

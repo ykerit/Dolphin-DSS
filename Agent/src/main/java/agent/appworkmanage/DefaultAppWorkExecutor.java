@@ -1,10 +1,7 @@
 package agent.appworkmanage;
 
 import agent.AgentContext;
-import agent.context.AppWorkAlivenessContext;
-import agent.context.AppWorkSignalContext;
-import agent.context.AppWorkStartContext;
-import agent.context.LocalizerStartContext;
+import agent.context.*;
 import common.exception.ExitCodeException;
 import common.util.Shell;
 import common.util.Shell.ShellCommandExecutor;

@@ -1,10 +1,12 @@
 package agent.appworkmanage.appwork;
 
+import agent.context.AppWorkLaunchContext;
+import common.event.EventProcessor;
 import common.resource.Resource;
 
 import java.nio.file.Path;
 
-public interface AppWork {
+public interface AppWork extends EventProcessor<AppWorkEvent> {
     long getAppId();
 
     String getAppWorkId();
@@ -16,6 +18,8 @@ public interface AppWork {
     Resource getResource();
 
     String getUser();
+
+    AppWorkLaunchContext getAppWorkLaunchContext();
 
     AppWorkState getAppWorkState();
 

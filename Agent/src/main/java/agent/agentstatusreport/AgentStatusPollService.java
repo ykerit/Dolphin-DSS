@@ -1,7 +1,6 @@
 package agent.agentstatusreport;
 
 import agent.AgentContext;
-import common.resource.ResourceUsage;
 import common.service.AbstractService;
 import common.struct.AgentID;
 import message.agent_master_message.HeartBeatRequest;
@@ -38,8 +37,8 @@ public class AgentStatusPollService extends AbstractService {
         } catch (SocketException e) {
             e.printStackTrace();
         }
-        cpu = ResourceUsage.getCpuUsage();
-        memory = ResourceUsage.getMemoryUsage();
+        cpu = 0;
+        memory = 0;
         super.serviceInit();
     }
 

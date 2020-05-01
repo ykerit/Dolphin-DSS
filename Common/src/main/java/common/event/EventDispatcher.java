@@ -22,6 +22,12 @@ public class EventDispatcher extends AbstractService {
     private Thread processor;
     private final Object lock = new Object();
 
+    public EventDispatcher(String name) {
+        super(name);
+        this.eventQueue = new LinkedBlockingQueue<>();
+        this.eventProcessors = new ConcurrentHashMap<>();
+    }
+
     public EventDispatcher() {
         super(EventDispatcher.class.getName());
         this.eventQueue = new LinkedBlockingQueue<>();

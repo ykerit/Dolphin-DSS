@@ -19,6 +19,7 @@ public class Agent extends ChaosService implements EventProcessor<AgentEvent> {
     private EventDispatcher eventDispatcher;
     private AgentStatusPollService agentStatusPollService;
     private AgentHeartBeat agentHeartBeat;
+    private AgentResourceMonitor resourceMonitor;
 
     public Agent() {
         super(Agent.class.getName());
@@ -45,6 +46,10 @@ public class Agent extends ChaosService implements EventProcessor<AgentEvent> {
 
         this.agentContext.setAgent(this);
 
+        // ----------Agent Resource Monitor -----------
+        this.resourceMonitor = createAgentResourceMonitor();
+        addService(this.resourceMonitor);
+
         // ----------Event Register-------------
         this.eventDispatcher.register(HeartBeatEventType.class, new AgentHeartBeat(this.agentContext));
         this.eventDispatcher.register(ActionType.class, new ActionProcessor(this.agentContext));
@@ -70,6 +75,10 @@ public class Agent extends ChaosService implements EventProcessor<AgentEvent> {
 
     private AgentStatusPollService createAgentStatusPollService() {
         return new AgentStatusPollService(this.agentContext);
+    }
+
+    private AgentResourceMonitor createAgentResourceMonitor() {
+        return new AgentResourceMonitor(this.agentContext);
     }
 
     @Override

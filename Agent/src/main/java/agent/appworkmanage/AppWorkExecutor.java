@@ -2,10 +2,7 @@ package agent.appworkmanage;
 
 import agent.AgentContext;
 import agent.appworkmanage.appwork.AppWork;
-import agent.context.AppWorkAlivenessContext;
-import agent.context.AppWorkSignalContext;
-import agent.context.AppWorkStartContext;
-import agent.context.LocalizerStartContext;
+import agent.context.*;
 import config.Configuration;
 import config.DolphinConfiguration;
 import org.apache.logging.log4j.LogManager;
@@ -27,10 +24,10 @@ public abstract class AppWorkExecutor {
     public void stop() {
     }
 
-    public abstract void startLocalizer(LocalizerStartContext ctx);
-
-    public void prepareAppWork() {
+    public void prepareAppWork(AppWorkPrepareContext ctx) throws IOException {
     }
+
+    public abstract void startLocalizer(LocalizerStartContext ctx);
 
     // Launch AppWork on the node, This is a blocking call and return only AppWork exit
     public abstract int launchAppWork(AppWorkStartContext ctx);

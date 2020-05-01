@@ -2,6 +2,7 @@ package agent;
 
 import agent.agentstatusreport.AgentStatusPollService;
 import agent.application.Application;
+import agent.appworkmanage.appwork.AppWork;
 import common.context.ServiceContext;
 import common.event.EventDispatcher;
 import common.struct.AgentID;
@@ -17,9 +18,14 @@ public class AgentContext {
     private AgentID agentID;
     private AgentStatusPollService agentStatusPollService;
     private ConcurrentMap<Long, Application> applications = new ConcurrentHashMap<>();
+    private ConcurrentMap<String, AppWork> appWorks = new ConcurrentHashMap<>();
 
     public ConcurrentMap<Long, Application> getApplications() {
         return applications;
+    }
+
+    public ConcurrentMap<String, AppWork> getAppWorks() {
+        return appWorks;
     }
 
     private String token;
