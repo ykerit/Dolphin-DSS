@@ -41,7 +41,7 @@ public class EventDispatcher extends AbstractService {
     }
 
     @Override
-    protected void serviceInit() {
+    protected void serviceInit() throws Exception {
         super.serviceInit();
     }
 

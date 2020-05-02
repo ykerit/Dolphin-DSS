@@ -1,9 +1,8 @@
 package agent.appworkmanage.scheduler;
 
-import agent.AgentContext;
+import agent.Context;
 import agent.appworkmanage.appwork.AppWork;
 import agent.appworkmanage.appwork.AppWorkExecType;
-import agent.appworkmanage.appwork.AppWorkImp;
 import common.event.EventDispatcher;
 import common.event.EventProcessor;
 import common.service.AbstractService;
@@ -13,7 +12,7 @@ import java.util.LinkedHashMap;
 public class AppWorkScheduler extends AbstractService implements EventProcessor<AppWorkSchedulerEvent> {
 
     private final EventDispatcher dispatcher;
-    private final AgentContext context;
+    private final Context context;
     private final int maxOppSize;
 
     // queue of promise to run appWork waiting for resource.
@@ -25,7 +24,7 @@ public class AppWorkScheduler extends AbstractService implements EventProcessor<
     // queue of appWork status is RUNNING or IDLE.
     private final LinkedHashMap<String, AppWork> runningAppWorks = new LinkedHashMap<>();
 
-    public AppWorkScheduler(AgentContext context, EventDispatcher dispatcher, int maxOppSize) {
+    public AppWorkScheduler(Context context, EventDispatcher dispatcher, int maxOppSize) {
         super(AppWorkScheduler.class.getName());
         this.dispatcher = dispatcher;
         this.context = context;

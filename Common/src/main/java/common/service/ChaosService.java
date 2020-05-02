@@ -38,7 +38,7 @@ public class ChaosService extends AbstractService  {
         }
     }
 
-    protected void serviceInit() {
+    protected void serviceInit() throws Exception {
         List<Service> services = getServiceList();
         for (Service service : services) {
             service.init();

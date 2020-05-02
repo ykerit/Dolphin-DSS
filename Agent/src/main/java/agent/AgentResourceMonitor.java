@@ -15,16 +15,16 @@ public class AgentResourceMonitor extends AbstractService {
     private ResourceCollect resourceCollect;
     private ResourceUtilization resourceUtilization;
     private final MonitorThread monitor;
-    private final AgentContext context;
+    private final Context context;
 
-    public AgentResourceMonitor(AgentContext context) {
+    public AgentResourceMonitor(Context context) {
         super(AgentResourceMonitor.class.getName());
         monitor = new MonitorThread();
         this.context = context;
     }
 
     @Override
-    protected void serviceInit() {
+    protected void serviceInit() throws Exception {
         this.monitorInterval = context.getConfiguration().getAgentMonitorInterval();
         this.resourceCollect = ResourceCollect.newInstance();
         super.serviceInit();

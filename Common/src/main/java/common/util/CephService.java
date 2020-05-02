@@ -29,7 +29,7 @@ public class CephService extends AbstractService {
 	}
 
 	@Override
-	protected void serviceInit() {
+	protected void serviceInit() throws Exception {
 		cluster = new Rados("admin");
 		File file = new File(configuration.getCephConfDir());
 		log.debug("ceph path :{}", configuration.getCephConfDir());

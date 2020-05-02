@@ -1,12 +1,12 @@
 package agent.agentstatusreport;
 
-import agent.AgentContext;
+import agent.Context;
 import common.event.EventProcessor;
 
 public class ActionProcessor implements EventProcessor<ActionEvent> {
-    private final AgentContext context;
+    private final Context context;
 
-    public ActionProcessor(AgentContext context) {
+    public ActionProcessor(Context context) {
         this.context = context;
     }
 

@@ -1,7 +1,7 @@
 package common.service;
 
 public interface Service {
-    void init();
+    void init() throws Exception;
     void start();
     void stop();
     String getName();

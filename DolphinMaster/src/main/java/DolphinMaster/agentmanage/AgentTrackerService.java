@@ -32,7 +32,7 @@ public class AgentTrackerService extends AbstractService implements AgentTracker
     }
 
     @Override
-    protected void serviceInit() {
+    protected void serviceInit() throws Exception {
         try {
             this.server = new ServerContainer(DefaultServerConfig.NODE_TRACKER_PORT, new NodeTask(this.dolphinContext));
         } catch (IOException e) {

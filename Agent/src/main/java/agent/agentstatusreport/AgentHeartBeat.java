@@ -1,6 +1,6 @@
 package agent.agentstatusreport;
 
-import agent.AgentContext;
+import agent.Context;
 import common.event.EventProcessor;
 import common.util.CallBack;
 import common.util.HeartBeatProvider;
@@ -15,9 +15,9 @@ import java.io.IOException;
 public class AgentHeartBeat implements EventProcessor<AgentHeartBeatEvent> {
     private static final Logger log = LogManager.getLogger(AgentHeartBeat.class.getName());
     private final HeartBeatProvider heartBeatProvider;
-    private final AgentContext context;
+    private final Context context;
 
-    public AgentHeartBeat(AgentContext context) {
+    public AgentHeartBeat(Context context) {
         this.heartBeatProvider = new HeartBeatProvider(
                 context.getConfiguration().getAgentSendHeartBeatPeriod());
         this.context = context;

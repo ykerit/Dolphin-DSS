@@ -1,6 +1,6 @@
 package agent.appworkmanage;
 
-import agent.AgentContext;
+import agent.Context;
 import agent.appworkmanage.appwork.AppWork;
 import agent.appworkmanage.appwork.AppWorkEvent;
 import agent.appworkmanage.appwork.AppWorkEventType;
@@ -22,13 +22,13 @@ public class AppWorkManagerImp extends ChaosService implements AppWorkManager {
 
     private static final Logger log = LogManager.getLogger(AppWorkManagerImp.class.getName());
 
-    private final AgentContext context;
+    private final Context context;
     private final AppWorkMonitor monitor;
     private final AbstractAppWorkLauncher appWorkLauncher;
     private final EventDispatcher dispatcher;
     private final AppWorkScheduler scheduler;
 
-    public AppWorkManagerImp(AgentContext context, AppWorkExecutor executor) {
+    public AppWorkManagerImp(Context context, AppWorkExecutor executor) {
         super(AppWorkManagerImp.class.getName());
         this.context = context;
         this.dispatcher = new EventDispatcher("AppWorkManage Dispatcher");
@@ -51,7 +51,7 @@ public class AppWorkManagerImp extends ChaosService implements AppWorkManager {
     }
 
     @Override
-    protected void serviceInit() {
+    protected void serviceInit() throws Exception {
         super.serviceInit();
     }
 
@@ -80,7 +80,7 @@ public class AppWorkManagerImp extends ChaosService implements AppWorkManager {
 
     }
 
-    protected AbstractAppWorkLauncher createAppWorkLauncher(AgentContext ctx, AppWorkExecutor executor) {
+    protected AbstractAppWorkLauncher createAppWorkLauncher(Context ctx, AppWorkExecutor executor) {
         AbstractAppWorkLauncher launcher = new AppWorkLauncherPool();
         launcher.init(ctx, this.dispatcher, executor, this);
         return launcher;
@@ -91,7 +91,7 @@ public class AppWorkManagerImp extends ChaosService implements AppWorkManager {
     }
 
     // pending
-    protected AppWorkScheduler createAppWorkScheduler(AgentContext context) {
+    protected AppWorkScheduler createAppWorkScheduler(Context context) {
         return new AppWorkScheduler(context, dispatcher, 100);
     }
 

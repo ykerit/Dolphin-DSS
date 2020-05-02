@@ -2,6 +2,8 @@ package agent;
 
 import agent.agentstatusreport.AgentStatusPollService;
 import agent.application.Application;
+import agent.appworkmanage.AppWorkExecutor;
+import agent.appworkmanage.AppWorkManagerImp;
 import agent.appworkmanage.appwork.AppWork;
 import common.context.ServiceContext;
 import common.event.EventDispatcher;
@@ -11,14 +13,26 @@ import org.greatfree.util.IPAddress;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 
-public class AgentContext {
+public class Context {
     private ServiceContext serviceContext;
     private Agent agent;
     private AgentID agentID;
     private AgentStatusPollService agentStatusPollService;
     private ConcurrentMap<Long, Application> applications = new ConcurrentHashMap<>();
-    private ConcurrentMap<String, AppWork> appWorks = new ConcurrentHashMap<>();
+    private ConcurrentMap<String, AppWork> appWorks = new ConcurrentSkipListMap<>();
+    private AppWorkExecutor executor;
+    private AgentResourceMonitor monitor;
+    private AppWorkManagerImp appWorkManager;
+
+    public AppWorkExecutor getAppWorkExecutor() {
+        return executor;
+    }
+
+    public void setAppWorkExecutor(AppWorkExecutor executor) {
+        this.executor = executor;
+    }
 
     public ConcurrentMap<Long, Application> getApplications() {
         return applications;
@@ -30,7 +44,7 @@ public class AgentContext {
 
     private String token;
 
-    public AgentContext() {
+    public Context() {
         this.serviceContext = new ServiceContext();
     }
 
@@ -76,5 +90,29 @@ public class AgentContext {
 
     public void setToken(String token) {
         this.token = token;
+    }
+
+    public AgentStatusPollService getAgentStatusPollService() {
+        return agentStatusPollService;
+    }
+
+    public void setAgentStatusPollService(AgentStatusPollService agentStatusPollService) {
+        this.agentStatusPollService = agentStatusPollService;
+    }
+
+    public AgentResourceMonitor getAgentResourceMonitor() {
+        return monitor;
+    }
+
+    public void setAgentResourceMonitor(AgentResourceMonitor monitor) {
+        this.monitor = monitor;
+    }
+
+    public AppWorkManagerImp getAppWorkManager() {
+        return appWorkManager;
+    }
+
+    public void setAppWorkManager(AppWorkManagerImp appWorkManager) {
+        this.appWorkManager = appWorkManager;
     }
 }

@@ -1,6 +1,6 @@
 package agent.appworkmanage;
 
-import agent.AgentContext;
+import agent.Context;
 import agent.context.*;
 import common.exception.ExitCodeException;
 import common.util.Shell;
@@ -20,7 +20,7 @@ public class DefaultAppWorkExecutor extends AppWorkExecutor {
     }
 
     @Override
-    public void init(AgentContext context) {
+    public void init(Context context) throws IOException {
         // when something need to do
     }
 

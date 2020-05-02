@@ -1,6 +1,6 @@
 package agent.appworkmanage.launcher;
 
-import agent.AgentContext;
+import agent.Context;
 import agent.application.Application;
 import agent.appworkmanage.AppWorkExecutor;
 import agent.appworkmanage.AppWorkManagerImp;
@@ -20,7 +20,7 @@ public class AppWorkLauncherPool extends AbstractService implements AbstractAppW
 
     private static final Logger log = LogManager.getLogger(AppWorkLauncherPool.class.getName());
 
-    private AgentContext context;
+    private Context context;
     private AppWorkExecutor executor;
     private EventDispatcher dispatcher;
     private AppWorkManagerImp appWorkManager;
@@ -37,7 +37,7 @@ public class AppWorkLauncherPool extends AbstractService implements AbstractAppW
     }
 
     @Override
-    public void init(AgentContext context, EventDispatcher dispatcher, AppWorkExecutor executor, AppWorkManagerImp appWorkManager) {
+    public void init(Context context, EventDispatcher dispatcher, AppWorkExecutor executor, AppWorkManagerImp appWorkManager) {
         this.context = context;
         this.dispatcher = dispatcher;
         this.executor = executor;

@@ -1,6 +1,6 @@
 package agent.agentstatusreport;
 
-import agent.AgentContext;
+import agent.Context;
 import common.service.AbstractService;
 import common.struct.AgentID;
 import message.agent_master_message.HeartBeatRequest;
@@ -17,7 +17,7 @@ import java.net.SocketException;
 
 public class AgentStatusPollService extends AbstractService {
     private static final Logger log = LogManager.getLogger(AgentStatusPollService.class.getName());
-    private final AgentContext agentContext;
+    private final Context context;
     private AgentID localHost;
     private boolean isRegistered = false;
 
@@ -25,13 +25,13 @@ public class AgentStatusPollService extends AbstractService {
     private double cpu;
     private double memory;
 
-    public AgentStatusPollService(AgentContext agentContext) {
+    public AgentStatusPollService(Context context) {
         super(AgentStatusPollService.class.getName());
-        this.agentContext = agentContext;
+        this.context = context;
     }
 
     @Override
-    protected void serviceInit() {
+    protected void serviceInit() throws Exception {
         try {
             localHost = new AgentID(Tools.getLocalIP(), 9006);
         } catch (SocketException e) {
@@ -45,10 +45,10 @@ public class AgentStatusPollService extends AbstractService {
     @Override
     protected void serviceStart() {
         registerDolphinMaster();
-        if (isRegistered && agentContext.getToken() != null) {
-            this.agentContext.getAgentDispatcher().getEventProcessor()
+        if (isRegistered && context.getToken() != null) {
+            this.context.getAgentDispatcher().getEventProcessor()
                     .process(new AgentHeartBeatEvent(HeartBeatEventType.T_START,
-                            new HeartBeatRequest(localHost.getAgentKey(), agentContext.getToken())));
+                            new HeartBeatRequest(localHost.getAgentKey(), context.getToken())));
         }
         super.serviceStart();
     }
@@ -59,17 +59,17 @@ public class AgentStatusPollService extends AbstractService {
         RegisterAgentResponse registerAgentResponse = null;
         try {
             registerAgentResponse = (RegisterAgentResponse) StandaloneClient.CS()
-                    .read(agentContext.getRemote().getIP(),
-                            agentContext.getRemote().getPort(),
+                    .read(context.getRemote().getIP(),
+                            context.getRemote().getPort(),
                             registerAgentRequest);
         } catch (ClassNotFoundException | RemoteReadException | IOException e) {
             e.printStackTrace();
         }
 
         String token = registerAgentResponse.getToken();
-        agentContext.setToken(token);
+        context.setToken(token);
         log.info("Node key: {} token; {}", localHost.getAgentKey(), token);
-        this.agentContext.setAgentID(localHost);
+        this.context.setAgentID(localHost);
         isRegistered = true;
     }
 }

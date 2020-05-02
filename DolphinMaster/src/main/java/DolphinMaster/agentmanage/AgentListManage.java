@@ -17,7 +17,7 @@ public class AgentListManage extends AbstractService {
     }
 
     @Override
-    protected void serviceInit() {
+    protected void serviceInit() throws Exception {
         includeAgents = new HashMap<>();
         excludeAgents = new HashMap<>();
         super.serviceInit();

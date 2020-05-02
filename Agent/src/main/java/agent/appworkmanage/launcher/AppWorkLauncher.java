@@ -1,6 +1,6 @@
 package agent.appworkmanage.launcher;
 
-import agent.AgentContext;
+import agent.Context;
 import agent.application.Application;
 import agent.appworkmanage.AppWorkExecutor;
 import agent.appworkmanage.AppWorkManagerImp;
@@ -23,7 +23,7 @@ public class AppWorkLauncher implements Callable<Integer> {
     protected final AppWorkExecutor executor;
     protected final AppWork appWork;
 
-    private final AgentContext context;
+    private final Context context;
     private final AppWorkManagerImp appWorkManager;
 
     private AtomicBoolean appWorkAlreadyLaunched = new AtomicBoolean(false);
@@ -31,7 +31,7 @@ public class AppWorkLauncher implements Callable<Integer> {
 
     private long maxWaitKillTime = 2000L;
 
-    public AppWorkLauncher(AgentContext context,
+    public AppWorkLauncher(Context context,
                            EventDispatcher dispatcher,
                            AppWorkExecutor executor,
                            Application app,

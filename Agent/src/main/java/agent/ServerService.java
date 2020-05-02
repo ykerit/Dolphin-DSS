@@ -15,7 +15,7 @@ public class ServerService extends AbstractService {
     }
 
     @Override
-    protected void serviceInit() {
+    protected void serviceInit() throws Exception {
         try {
             this.serverContainer = new ServerContainer(DefaultServerConfig.AGENT_PORT, new AgentTask());
         } catch (IOException e) {

@@ -30,7 +30,7 @@ public abstract class AbstractService implements Service {
     }
 
     @Override
-    public void init() {
+    public void init() throws Exception {
         if (this.state == ServiceState.INITED)
             return;
         synchronized (lock) {
@@ -65,7 +65,7 @@ public abstract class AbstractService implements Service {
         }
     }
 
-    protected void serviceInit() {
+    protected void serviceInit() throws Exception {
 
     }
     protected void serviceStart() {

@@ -26,7 +26,7 @@ public class DolphinMaster extends ChaosService {
     }
 
     @Override
-    protected void serviceInit() {
+    protected void serviceInit() throws Exception {
         this.dolphinContext = new DolphinContext();
 
         this.dolphinContext.setConfiguration(new Configuration());

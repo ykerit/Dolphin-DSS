@@ -1,6 +1,6 @@
 package agent.appworkmanage;
 
-import agent.AgentContext;
+import agent.Context;
 import agent.appworkmanage.appwork.AppWork;
 import agent.context.*;
 import config.Configuration;
@@ -16,7 +16,7 @@ import java.util.List;
 public abstract class AppWorkExecutor {
     private static final Logger log = LogManager.getLogger(AppWorkExecutor.class.getName());
 
-    public abstract void init(AgentContext context);
+    public abstract void init(Context context) throws IOException;
 
     public void start() {
     }

@@ -29,7 +29,7 @@ public class Client extends ChaosService {
     }
 
     @Override
-    protected void serviceInit() {
+    protected void serviceInit() throws Exception {
         // ----------Client Init---------
         try {
             StandaloneClient.CS().init();
