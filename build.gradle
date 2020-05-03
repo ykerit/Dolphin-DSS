@@ -64,7 +64,7 @@ project(':Message') {
 
 project(':Common') {
     dependencies {
-        implementation 'com.github.oshi:oshi-core:4.5.0'
         implementation project(':Config')
+        compile group: 'org.slf4j', name: 'slf4j-nop', version: '1.7.30'
     }
 }
