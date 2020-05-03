@@ -556,9 +556,6 @@ public class SystemInfoLinux {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public long getPhysicalMemorySize() {
         readProcMemInfoFile();
         return (ramSize
@@ -566,16 +563,11 @@ public class SystemInfoLinux {
                 - (hugePagesTotal * hugePageSize)) * 1024;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public long getVirtualMemorySize() {
         return getPhysicalMemorySize() + (swapSize * 1024);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+
     public long getAvailablePhysicalMemorySize() {
         readProcMemInfoFile(true);
         long inactive = inactiveFileSize != -1
@@ -584,48 +576,30 @@ public class SystemInfoLinux {
         return (ramSizeFree + inactive) * 1024;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public long getAvailableVirtualMemorySize() {
         return getAvailablePhysicalMemorySize() + (swapSizeFree * 1024);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public int getNumProcessors() {
         readProcCpuInfoFile();
         return numProcessors;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public int getNumCores() {
         readProcCpuInfoFile();
         return numCores;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public long getCpuFrequency() {
         readProcCpuInfoFile();
         return cpuFrequency;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public long getCumulativeCpuTime() {
         readProcStatFile();
         return cpuTimeTracker.getCumulativeCpuTime();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public float getCpuUsagePercentage() {
         readProcStatFile();
         float overallCpuUsage = cpuTimeTracker.getCpuTrackerUsagePercent();
@@ -635,9 +609,6 @@ public class SystemInfoLinux {
         return overallCpuUsage;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public float getNumVCoresUsed() {
         readProcStatFile();
         float overallVCoresUsage = cpuTimeTracker.getCpuTrackerUsagePercent();
@@ -647,17 +618,11 @@ public class SystemInfoLinux {
         return overallVCoresUsage;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public long getNetworkBytesRead() {
         readProcNetInfoFile();
         return numNetBytesRead;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public long getNetworkBytesWritten() {
         readProcNetInfoFile();
         return numNetBytesWritten;

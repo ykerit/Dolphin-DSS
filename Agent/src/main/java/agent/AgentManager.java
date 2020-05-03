@@ -16,7 +16,7 @@ import org.greatfree.exceptions.RemoteReadException;
 
 import java.io.IOException;
 
-public class Agent extends ChaosService implements EventProcessor<AgentEvent> {
+public class AgentManager extends ChaosService implements EventProcessor<AgentEvent> {
     private Context context;
     private EventDispatcher eventDispatcher;
     private AgentStatusPollService agentStatusPollService;
@@ -25,8 +25,8 @@ public class Agent extends ChaosService implements EventProcessor<AgentEvent> {
     private AppWorkManagerImp appWorkManager;
 
 
-    public Agent() {
-        super(Agent.class.getName());
+    public AgentManager() {
+        super(AgentManager.class.getName());
     }
 
     @Override
@@ -74,8 +74,8 @@ public class Agent extends ChaosService implements EventProcessor<AgentEvent> {
         this.eventDispatcher.register(ActionType.class, new ActionProcessor(this.context));
         this.eventDispatcher.register(AppWorkManagerEventType.class, appWorkManager);
 
-        this.context.setAgent(this);
         this.context.getAppWorkExecutor().start();
+        this.context.setAgentManager(this);
         super.serviceInit();
     }
 

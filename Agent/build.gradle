@@ -17,5 +17,5 @@ dependencies {
 
 application {
     // Define the main class for the application.
-    mainClassName = 'agent.App'
+    mainClassName = 'agentManager.App'
 }

@@ -17,7 +17,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
 
 public class Context {
     private ServiceContext serviceContext;
-    private Agent agent;
+    private AgentManager agentManager;
     private AgentID agentID;
     private AgentStatusPollService agentStatusPollService;
     private ConcurrentMap<Long, Application> applications = new ConcurrentHashMap<>();
@@ -48,12 +48,12 @@ public class Context {
         this.serviceContext = new ServiceContext();
     }
 
-    public Agent getAgent() {
-        return agent;
+    public AgentManager getAgentManager() {
+        return agentManager;
     }
 
-    public void setAgent(Agent agent) {
-        this.agent = agent;
+    public void setAgentManager(AgentManager agentManager) {
+        this.agentManager = agentManager;
     }
 
     public EventDispatcher getAgentDispatcher() {

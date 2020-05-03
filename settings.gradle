@@ -1,2 +1,2 @@
 rootProject.name = 'dolphin'
-include 'Agent', 'Common', 'DolphinMaster', 'Client', 'Message', 'Config', 'AppMaster'
+include 'Agent', 'Common', 'DolphinMaster', 'Client', 'Message', 'Config'
