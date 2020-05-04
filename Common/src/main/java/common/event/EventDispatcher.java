@@ -46,7 +46,7 @@ public class EventDispatcher extends AbstractService {
     }
 
     @Override
-    protected void serviceStart() {
+    protected void serviceStart() throws Exception {
         processor = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -78,7 +78,7 @@ public class EventDispatcher extends AbstractService {
     }
 
     @Override
-    protected void serviceStop() {
+    protected void serviceStop() throws Exception {
         // Wait for all processor to complete before exit
         this.strike = true;
         log.info("EVENT_DISPATCHER DON'T DISPATCH");

@@ -1,7 +1,7 @@
 package DolphinMaster.agentmanage;
 
 import common.service.AbstractService;
-import common.struct.AgentID;
+import common.struct.AgentId;
 import common.struct.Pair;
 
 import java.util.HashMap;
@@ -9,9 +9,9 @@ import java.util.Map;
 
 public class AgentListManage extends AbstractService {
     // white list
-    private Map<Long, AgentID> includeAgents;
+    private Map<Long, AgentId> includeAgents;
     // black list
-    private Map<Long, AgentID> excludeAgents;
+    private Map<Long, AgentId> excludeAgents;
     public AgentListManage() {
         super(AgentListManage.class.getName());
     }
@@ -23,20 +23,20 @@ public class AgentListManage extends AbstractService {
         super.serviceInit();
     }
 
-    public synchronized void addInclude(long id, AgentID agentID) {
+    public synchronized void addInclude(long id, AgentId agentID) {
         if (includeAgents.get(id) == null) {
             excludeAgents.put(id, agentID);
         }
     }
 
-    public synchronized void addExclude(long id, AgentID agentID) {
+    public synchronized void addExclude(long id, AgentId agentID) {
         if (excludeAgents.get(id) == null) {
             excludeAgents.put(id, agentID);
         }
     }
 
     public synchronized void moveToInclude(long id) {
-        AgentID agentID = excludeAgents.get(id);
+        AgentId agentID = excludeAgents.get(id);
         if (agentID != null) {
             includeAgents.put(id, agentID);
             excludeAgents.remove(id);
@@ -44,7 +44,7 @@ public class AgentListManage extends AbstractService {
     }
 
     public synchronized void moveToExclude(long id) {
-        AgentID agentID = includeAgents.get(id);
+        AgentId agentID = includeAgents.get(id);
         if (agentID != null) {
             excludeAgents.put(id, agentID);
             includeAgents.remove(id);
@@ -59,23 +59,23 @@ public class AgentListManage extends AbstractService {
     public String toString() {
         StringBuffer buffer = new StringBuffer();
         buffer.append("white list:\n");
-        for (AgentID agentID : includeAgents.values()) {
+        for (AgentId agentID : includeAgents.values()) {
             buffer.append(agentID.toString());
         }
         buffer.append("black list:\n");
-        for (AgentID agentID : excludeAgents.values()) {
+        for (AgentId agentID : excludeAgents.values()) {
             buffer.append(agentID.toString());
         }
         return buffer.toString();
     }
 
     @Override
-    protected void serviceStart() {
+    protected void serviceStart() throws Exception {
         super.serviceStart();
     }
 
     @Override
-    protected void serviceStop() {
+    protected void serviceStop() throws Exception {
         super.serviceStop();
     }
 

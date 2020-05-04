@@ -1,6 +1,7 @@
 package agent.appworkmanage.appwork;
 
 import agent.context.AppWorkLaunchContext;
+import agent.status.AppWorkStatus;
 import common.event.EventProcessor;
 import common.resource.Resource;
 
@@ -42,4 +43,6 @@ public interface AppWork extends EventProcessor<AppWorkEvent> {
     void sendKillEvent(int exitStatus, String description);
 
     boolean isRecovering();
+
+    AppWorkStatus cloneAndGetAppWorkStatus();
 }

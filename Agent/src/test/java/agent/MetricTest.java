@@ -14,27 +14,24 @@ public class MetricTest {
     static final MetricRegistry metrics = new MetricRegistry();
 
     void report() {
-        final CsvReporter reporter = CsvReporter.forRegistry(metrics)
+        final ConsoleReporter reporter = ConsoleReporter.forRegistry(metrics)
                 .convertRatesTo(TimeUnit.SECONDS)
                 .convertDurationsTo(TimeUnit.MILLISECONDS)
-                .build(new File("~/workspace"));
+                .build();
         reporter.start(1, TimeUnit.SECONDS);
-        reporter.report();
     }
 
     @Test
     public void testMetric() {
         report();
-        metrics.register(MetricRegistry.name("cpu usage"), new Gauge<Integer>() {
+        Gauge<Integer> integerGauge = new Gauge<Integer>() {
             @Override
             public Integer getValue() {
                 return 100;
             }
-        });
+        };
+        metrics.register(MetricRegistry.name("cpu usage"), integerGauge);
 
-
-        while (true) {
-
-        }
+        while (true);
     }
 }

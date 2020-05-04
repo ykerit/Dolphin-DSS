@@ -1,9 +1,5 @@
 package agent;
 
-import agent.agentstatusreport.ActionProcessor;
-import agent.agentstatusreport.AgentHeartBeat;
-import agent.agentstatusreport.AgentStatusPollService;
-import agent.agentstatusreport.HeartBeatEventType;
 import agent.appworkmanage.*;
 import common.event.ActionType;
 import common.event.EventDispatcher;
@@ -11,18 +7,23 @@ import common.event.EventProcessor;
 import common.exception.DolphinRuntimeException;
 import common.service.ChaosService;
 import config.Configuration;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.greatfree.client.StandaloneClient;
 import org.greatfree.exceptions.RemoteReadException;
 
 import java.io.IOException;
+import java.lang.management.ThreadInfo;
 
 public class AgentManager extends ChaosService implements EventProcessor<AgentEvent> {
     private Context context;
     private EventDispatcher eventDispatcher;
-    private AgentStatusPollService agentStatusPollService;
-    private AgentHeartBeat agentHeartBeat;
+    private AgentStatusReporter statusReporter;
     private AgentResourceMonitor resourceMonitor;
+    private AgentManageMetrics metrics;
     private AppWorkManagerImp appWorkManager;
+
+    private static final Logger log = LogManager.getLogger(AgentManager.class.getName());
 
 
     public AgentManager() {
@@ -44,10 +45,15 @@ public class AgentManager extends ChaosService implements EventProcessor<AgentEv
         addService(this.eventDispatcher);
         this.context.setAgentDispatcher(this.eventDispatcher);
 
+        // ----------Agent Metrics ----------
+        this.metrics = createMetrics();
+        addService(this.metrics);
+        this.context.setMetrics(this.metrics);
+
         // ----------Agent Status Poll Service-------
-        this.agentStatusPollService = createAgentStatusPollService();
-        addService(agentStatusPollService);
-        context.setAgentStatusPollService(agentStatusPollService);
+        this.statusReporter = createAgentStatusReporterService(context, eventDispatcher, metrics);
+        addService(statusReporter);
+        context.setAgentStatusReporter(statusReporter);
 
         // ----------Agent Resource Monitor -----------
         this.resourceMonitor = createAgentResourceMonitor();
@@ -70,9 +76,8 @@ public class AgentManager extends ChaosService implements EventProcessor<AgentEv
 
 
         // ----------Event Register-------------
-        this.eventDispatcher.register(HeartBeatEventType.class, new AgentHeartBeat(this.context));
-        this.eventDispatcher.register(ActionType.class, new ActionProcessor(this.context));
         this.eventDispatcher.register(AppWorkManagerEventType.class, appWorkManager);
+        this.eventDispatcher.register(AgentEventType.class, this);
 
         this.context.getAppWorkExecutor().start();
         this.context.setAgentManager(this);
@@ -80,7 +85,7 @@ public class AgentManager extends ChaosService implements EventProcessor<AgentEv
     }
 
     @Override
-    protected void serviceStop() {
+    protected void serviceStop() throws Exception {
         // ------------Client Dispose-----------
         try {
             StandaloneClient.CS().dispose();
@@ -93,24 +98,57 @@ public class AgentManager extends ChaosService implements EventProcessor<AgentEv
         super.serviceStop();
     }
 
-    private AgentStatusPollService createAgentStatusPollService() {
-        return new AgentStatusPollService(this.context);
+    private AgentManageMetrics createMetrics() {
+        return new AgentManageMetrics();
+    }
+
+    private AgentStatusReporter createAgentStatusReporterService(Context context, EventDispatcher dispatcher, AgentManageMetrics metrics) {
+        return new AgentStatusReporter(context, dispatcher, metrics);
+    }
+
+    private AppWorkExecutorImp createAppWorkExecutor() {
+        return new AppWorkExecutorImp();
     }
 
     private AgentResourceMonitor createAgentResourceMonitor() {
         return new AgentResourceMonitor(this.context);
     }
 
-    protected AppWorkExecutor createAppWorkExecutor() {
-        return new DefaultAppWorkExecutor();
-    }
-
     protected AppWorkManagerImp createAppWorkManage(Context context, AppWorkExecutor executor) {
         return new AppWorkManagerImp(context, executor);
     }
 
+    protected void shutdown() {
+        new Thread() {
+            @Override
+            public void run() {
+                try {
+                    AgentManager.this.stop();
+                } catch (Exception e) {
+                    log.error("Error while shutdown AgentManage", e);
+                } finally {
+                    System.exit(0);
+                }
+            }
+        };
+    }
+
+    protected void rsync() {
+        // 1. cleanup AppWork
+        // 2. reboot Agent status reporter
+    }
+
     @Override
     public void process(AgentEvent event) {
-
+        switch (event.getType()) {
+            case SHUTDOWN:
+                shutdown();
+                break;
+            case RSYNC:
+                rsync();
+                break;
+            default:
+                break;
+        }
     }
 }

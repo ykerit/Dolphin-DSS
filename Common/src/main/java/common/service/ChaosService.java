@@ -47,7 +47,7 @@ public class ChaosService extends AbstractService  {
         super.serviceInit();
     }
 
-    protected void serviceStart() {
+    protected void serviceStart() throws Exception {
         List<Service> services = getServiceList();
         log.info("current service size: " + services.size());
         for (Service service : services) {
@@ -60,7 +60,7 @@ public class ChaosService extends AbstractService  {
     /**
      * Service stop sequences Warning
      */
-    protected void serviceStop() {
+    protected void serviceStop() throws Exception {
         List<Service> services = getServiceList();
         for (Service service : services) {
             service.stop();

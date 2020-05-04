@@ -12,53 +12,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
-public class LinuxAppWorkExecutor extends AppWorkExecutor {
-
-    public enum ExitCode {
-        SUCCESS(0),
-        INVALID_ARGUMENT_NUMBER(1),
-        INVALID_COMMAND_PROVIDED(3),
-        INVALID_NM_ROOT_DIRS(5),
-        SETUID_OPER_FAILED(6),
-        UNABLE_TO_EXECUTE_CONTAINER_SCRIPT(7),
-        UNABLE_TO_SIGNAL_CONTAINER(8),
-        INVALID_CONTAINER_PID(9),
-        OUT_OF_MEMORY(18),
-        INITIALIZE_USER_FAILED(20),
-        PATH_TO_DELETE_IS_NULL(21),
-        INVALID_CONTAINER_EXEC_PERMISSIONS(22),
-        INVALID_CONFIG_FILE(24),
-        SETSID_OPER_FAILED(25),
-        WRITE_PIDFILE_FAILED(26),
-        WRITE_CGROUP_FAILED(27),
-        TRAFFIC_CONTROL_EXECUTION_FAILED(28),
-        DOCKER_RUN_FAILED(29),
-        ERROR_OPENING_DOCKER_FILE(30),
-        ERROR_READING_DOCKER_FILE(31),
-        FEATURE_DISABLED(32),
-        COULD_NOT_CREATE_SCRIPT_COPY(33),
-        COULD_NOT_CREATE_CREDENTIALS_FILE(34),
-        COULD_NOT_CREATE_WORK_DIRECTORIES(35),
-        COULD_NOT_CREATE_APP_LOG_DIRECTORIES(36),
-        COULD_NOT_CREATE_TMP_DIRECTORIES(37),
-        ERROR_CREATE_CONTAINER_DIRECTORIES_ARGUMENTS(38);
-
-        private final int code;
-
-        ExitCode(int code) {
-            this.code = code;
-        }
-
-        public int getCode() {
-            return code;
-        }
-
-        @Override
-        public String toString() {
-            return String.valueOf(code);
-        }
-    }
+public class AppWorkExecutorImp extends AppWorkExecutor {
 
     private static final Logger log = LogManager.getLogger(LinuxAppWorkRuntime.class.getName());
 
@@ -78,6 +35,16 @@ public class LinuxAppWorkExecutor extends AppWorkExecutor {
             log.error("Failed to initialize AppWork Runtime", e);
             throw new IOException("Failed to initialize AppWork Runtime", e);
         }
+    }
+
+    protected void addSchedPriorityCommand(List<String> command) {
+        if (appWorkSchedPriorityIsSet) {
+            command.addAll(Arrays.asList("nice", "-n", Integer.toString(appWorkSchedPriorityAdjustment)));
+        }
+    }
+
+    public void mountCgroups(List<String> cgroupKVs, String hierarchy) {
+
     }
 
     @Override

@@ -42,7 +42,7 @@ public class CephService extends AbstractService {
 	}
 
 	@Override
-	protected void serviceStart() {
+	protected void serviceStart() throws Exception {
 		try {
 			cluster.connect();
 		} catch (RadosException e) {
@@ -52,7 +52,7 @@ public class CephService extends AbstractService {
 	}
 
 	@Override
-	protected void serviceStop() {
+	protected void serviceStop() throws Exception {
 		for (IoCTX ioCTX : ioCTXList) {
 			cluster.ioCtxDestroy(ioCTX);
 		}

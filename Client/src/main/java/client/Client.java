@@ -43,12 +43,12 @@ public class Client extends ChaosService {
     }
 
     @Override
-    protected void serviceStart() {
+    protected void serviceStart() throws Exception {
         super.serviceStart();
     }
 
     @Override
-    protected void serviceStop() {
+    protected void serviceStop() throws Exception {
         try {
             StandaloneClient.CS().dispose();
         } catch (IOException | InterruptedException e) {

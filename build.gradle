@@ -47,6 +47,7 @@ project(':Client') {
 project(':DolphinMaster') {
     dependencies {
         implementation project(':Message')
+        implementation project(':Agent')
         implementation project(':Common')
         implementation project(':Config')
         compile group: 'org.freemarker', name: 'freemarker', version: '2.3.30'

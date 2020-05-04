@@ -2,7 +2,7 @@ package DolphinMaster.servertask;
 
 import DolphinMaster.DolphinContext;
 import message.MessageID;
-import message.agent_master_message.HeartBeatRequest;
+import message.agent_master_message.AgentHeartBeatRequest;
 import message.agent_master_message.RegisterAgentRequest;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -31,7 +31,7 @@ public class NodeTask implements ServerTask {
                 return this.dolphinContext.getAgentTrackerService().registerAgentManage((RegisterAgentRequest) request);
             case MessageID.HEART_BEAT_REQUEST:
                 log.info("HEART_BEAT_REQUEST");
-                return this.dolphinContext.getAgentTrackerService().agentHeartBeat((HeartBeatRequest) request);
+                return this.dolphinContext.getAgentTrackerService().agentHeartBeat((AgentHeartBeatRequest) request);
         }
         return null;
     }

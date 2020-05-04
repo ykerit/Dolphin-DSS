@@ -1,6 +1,6 @@
 package agent;
 
-import common.resource.ResourceCollect;
+import common.resource.ResourceCollector;
 import common.resource.ResourceUtilization;
 import common.service.AbstractService;
 import org.apache.logging.log4j.LogManager;
@@ -12,7 +12,7 @@ public class AgentResourceMonitor extends AbstractService {
 
     private long monitorInterval;
 
-    private ResourceCollect resourceCollect;
+    private ResourceCollector resourceCollector;
     private ResourceUtilization resourceUtilization;
     private final MonitorThread monitor;
     private final Context context;
@@ -26,12 +26,12 @@ public class AgentResourceMonitor extends AbstractService {
     @Override
     protected void serviceInit() throws Exception {
         this.monitorInterval = context.getConfiguration().getAgentMonitorInterval();
-        this.resourceCollect = ResourceCollect.newInstance();
+        this.resourceCollector = ResourceCollector.newInstance();
         super.serviceInit();
     }
 
     @Override
-    protected void serviceStart() {
+    protected void serviceStart() throws Exception {
         if (enable()) {
             monitor.start();
         }
@@ -39,7 +39,7 @@ public class AgentResourceMonitor extends AbstractService {
     }
 
     @Override
-    protected void serviceStop() {
+    protected void serviceStop() throws Exception {
         if (enable()) {
             this.monitor.interrupt();
             try {
@@ -56,7 +56,7 @@ public class AgentResourceMonitor extends AbstractService {
             log.info("Agent resource monitor <= 0");
             return false;
         }
-        if (resourceCollect == null) {
+        if (resourceCollector == null) {
             log.info("resource collect failed");
             return false;
         }
@@ -73,9 +73,15 @@ public class AgentResourceMonitor extends AbstractService {
         @Override
         public void run() {
             while (true) {
-                long mem = resourceCollect.getMemorySize() - resourceCollect.getAvailableMemorySize();
-                float vCore = resourceCollect.getNumVCoresUsed();
-                ResourceUtilization.newInstance((int) mem >> 20, vCore);
+                long mem = resourceCollector.getMemorySize() - resourceCollector.getAvailableMemorySize();
+                float vCore = resourceCollector.getNumVCoresUsed();
+                resourceUtilization = ResourceUtilization.newInstance((int) mem >> 20, vCore);
+
+                AgentManageMetrics metrics = context.getMetrics();
+                if (metrics != null) {
+                    metrics.setAgentCpuUtilization(resourceUtilization.getCpu());
+                    metrics.setAgentUsedMemGB(resourceUtilization.getMemory());
+                }
 
                 try {
                     Thread.sleep(monitorInterval);

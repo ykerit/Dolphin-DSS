@@ -1,11 +1,11 @@
-package message.agent_master_message;
+package agent.message;
 
-import common.struct.AgentID;
+import common.struct.AgentId;
 import message.MessageID;
 import org.greatfree.message.ServerMessage;
 
 public class RegisterAgentResponse extends ServerMessage {
-    private AgentID agentID;
+    private AgentId agentId;
     private String token;
 
     public void setToken(String token) {
@@ -16,13 +16,13 @@ public class RegisterAgentResponse extends ServerMessage {
         return token;
     }
 
-    public RegisterAgentResponse(AgentID agentID, String token) {
+    public RegisterAgentResponse(AgentId agentID, String token) {
         super(MessageID.REGISTER_AGENT_RESPONSE);
-        this.agentID = agentID;
+        this.agentId = agentID;
         this.token = token;
     }
 
-    public AgentID getAgentID() {
-        return agentID;
+    public AgentId getAgentId() {
+        return agentId;
     }
 }

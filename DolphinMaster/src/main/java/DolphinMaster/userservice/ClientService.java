@@ -27,7 +27,7 @@ public class ClientService extends AbstractService {
     }
 
     @Override
-    protected void serviceStart() {
+    protected void serviceStart() throws Exception {
         try {
             this.server.start();
         } catch (IOException e) {
@@ -41,7 +41,7 @@ public class ClientService extends AbstractService {
     }
 
     @Override
-    protected void serviceStop() {
+    protected void serviceStop() throws Exception {
         TerminateSignal.SIGNAL().setTerminated();
         try {
             this.server.stop(2000L);

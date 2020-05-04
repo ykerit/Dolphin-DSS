@@ -32,7 +32,7 @@ public abstract class LivelinessMonitor extends AbstractService {
     }
 
     @Override
-    protected void serviceStart() {
+    protected void serviceStart() throws Exception {
         this.checkerThread = new Thread(new Monitor());
         this.checkerThread.start();
         this.checkerThread.setName(getName());
@@ -40,7 +40,7 @@ public abstract class LivelinessMonitor extends AbstractService {
     }
 
     @Override
-    protected void serviceStop() {
+    protected void serviceStop() throws Exception {
         this.shutdown = true;
         super.serviceStop();
     }

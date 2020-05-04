@@ -56,12 +56,12 @@ public class AppWorkManagerImp extends ChaosService implements AppWorkManager {
     }
 
     @Override
-    protected void serviceStart() {
+    protected void serviceStart() throws Exception {
         super.serviceStart();
     }
 
     @Override
-    protected void serviceStop() {
+    protected void serviceStop() throws Exception {
         super.serviceStop();
     }
 

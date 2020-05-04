@@ -42,7 +42,7 @@ public abstract class AbstractService implements Service {
     }
 
     @Override
-    public void start() {
+    public void start() throws Exception{
         if (this.state == ServiceState.STARTED)
             return;
         synchronized (lock) {
@@ -54,7 +54,7 @@ public abstract class AbstractService implements Service {
     }
 
     @Override
-    public void stop() {
+    public void stop() throws Exception{
         if (this.state == ServiceState.STOPPED)
             return;
         synchronized (lock) {
@@ -68,10 +68,10 @@ public abstract class AbstractService implements Service {
     protected void serviceInit() throws Exception {
 
     }
-    protected void serviceStart() {
+    protected void serviceStart() throws Exception {
 
     }
-    protected void serviceStop() {
+    protected void serviceStop() throws Exception {
 
     }
 

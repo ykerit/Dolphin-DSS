@@ -61,12 +61,12 @@ public class DolphinMaster extends ChaosService {
     }
 
     @Override
-    protected void serviceStart() {
+    protected void serviceStart() throws Exception {
         super.serviceStart();
     }
 
     @Override
-    protected void serviceStop() {
+    protected void serviceStop() throws Exception {
         super.serviceStop();
     }
 

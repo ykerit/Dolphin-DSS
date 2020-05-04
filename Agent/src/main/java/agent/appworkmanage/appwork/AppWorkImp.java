@@ -1,6 +1,7 @@
 package agent.appworkmanage.appwork;
 
 import agent.context.AppWorkLaunchContext;
+import agent.status.AppWorkStatus;
 import common.event.EventDispatcher;
 import common.resource.Resource;
 import common.util.Tools;
@@ -131,6 +132,11 @@ public class AppWorkImp implements AppWork {
     @Override
     public boolean isRecovering() {
         return false;
+    }
+
+    @Override
+    public AppWorkStatus cloneAndGetAppWorkStatus() {
+        return null;
     }
 
     @Override

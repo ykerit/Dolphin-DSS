@@ -2,14 +2,14 @@ package common.resource;
 
 import common.util.SystemInfoLinux;
 
-public class ResourceCollect {
+public class ResourceCollector {
     private final SystemInfoLinux sysInfo;
 
-    protected ResourceCollect() {
+    public ResourceCollector() {
         this(SystemInfoLinux.newInstance());
     }
 
-    public ResourceCollect(SystemInfoLinux sysInfo) {
+    public ResourceCollector(SystemInfoLinux sysInfo) {
         this.sysInfo = sysInfo;
     }
 
@@ -49,7 +49,7 @@ public class ResourceCollect {
         return sysInfo.getNetworkBytesWritten();
     }
 
-    public static ResourceCollect newInstance() {
-        return new ResourceCollect();
+    public static ResourceCollector newInstance() {
+        return new ResourceCollector();
     }
 }

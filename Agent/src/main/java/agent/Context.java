@@ -1,13 +1,12 @@
 package agent;
 
-import agent.agentstatusreport.AgentStatusPollService;
 import agent.application.Application;
 import agent.appworkmanage.AppWorkExecutor;
 import agent.appworkmanage.AppWorkManagerImp;
 import agent.appworkmanage.appwork.AppWork;
 import common.context.ServiceContext;
 import common.event.EventDispatcher;
-import common.struct.AgentID;
+import common.struct.AgentId;
 import config.Configuration;
 import org.greatfree.util.IPAddress;
 
@@ -18,13 +17,14 @@ import java.util.concurrent.ConcurrentSkipListMap;
 public class Context {
     private ServiceContext serviceContext;
     private AgentManager agentManager;
-    private AgentID agentID;
-    private AgentStatusPollService agentStatusPollService;
+    private AgentId agentId;
+    private AgentStatusReporter agentStatusReporter;
     private ConcurrentMap<Long, Application> applications = new ConcurrentHashMap<>();
     private ConcurrentMap<String, AppWork> appWorks = new ConcurrentSkipListMap<>();
     private AppWorkExecutor executor;
     private AgentResourceMonitor monitor;
     private AppWorkManagerImp appWorkManager;
+    private AgentManageMetrics metrics;
 
     public AppWorkExecutor getAppWorkExecutor() {
         return executor;
@@ -76,12 +76,12 @@ public class Context {
         return this.serviceContext.getConfiguration().getDolphinMasterNodeHost();
     }
 
-    public void setAgentID(AgentID agentID) {
-        this.agentID = agentID;
+    public void setAgentId(AgentId agentId) {
+        this.agentId = agentId;
     }
 
-    public AgentID getAgentID() {
-        return agentID;
+    public AgentId getAgentId() {
+        return agentId;
     }
 
     public String getToken() {
@@ -92,12 +92,12 @@ public class Context {
         this.token = token;
     }
 
-    public AgentStatusPollService getAgentStatusPollService() {
-        return agentStatusPollService;
+    public AgentStatusReporter getAgentStatusReporterService() {
+        return agentStatusReporter;
     }
 
-    public void setAgentStatusPollService(AgentStatusPollService agentStatusPollService) {
-        this.agentStatusPollService = agentStatusPollService;
+    public void setAgentStatusReporter(AgentStatusReporter agentStatusReporter) {
+        this.agentStatusReporter = agentStatusReporter;
     }
 
     public AgentResourceMonitor getAgentResourceMonitor() {
@@ -114,5 +114,13 @@ public class Context {
 
     public void setAppWorkManager(AppWorkManagerImp appWorkManager) {
         this.appWorkManager = appWorkManager;
+    }
+
+    public AgentManageMetrics getMetrics() {
+        return metrics;
+    }
+
+    public void setMetrics(AgentManageMetrics metrics) {
+        this.metrics = metrics;
     }
 }

@@ -25,7 +25,7 @@ public class ServerService extends AbstractService {
     }
 
     @Override
-    protected void serviceStart() {
+    protected void serviceStart() throws Exception {
         try {
             this.serverContainer.start();
         } catch (IOException | ClassNotFoundException | RemoteReadException e) {
@@ -35,7 +35,7 @@ public class ServerService extends AbstractService {
     }
 
     @Override
-    protected void serviceStop() {
+    protected void serviceStop() throws Exception {
         try {
             this.serverContainer.stop(2000L);
         } catch (ClassNotFoundException | IOException | InterruptedException | RemoteReadException e) {

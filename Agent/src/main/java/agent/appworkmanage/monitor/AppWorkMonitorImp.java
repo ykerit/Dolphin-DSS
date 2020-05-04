@@ -1,5 +1,6 @@
 package agent.appworkmanage.monitor;
 
+import common.resource.ResourceUtilization;
 import common.service.ServiceState;
 
 public class AppWorkMonitorImp implements AppWorkMonitor {
@@ -30,6 +31,11 @@ public class AppWorkMonitorImp implements AppWorkMonitor {
 
     @Override
     public ServiceState getServiceState() {
+        return null;
+    }
+
+    @Override
+    public ResourceUtilization getAppWorkUtilization() {
         return null;
     }
 }

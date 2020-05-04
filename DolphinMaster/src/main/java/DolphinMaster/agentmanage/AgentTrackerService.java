@@ -2,13 +2,14 @@ package DolphinMaster.agentmanage;
 
 import DolphinMaster.DolphinContext;
 import common.event.ActionType;
-import common.struct.AgentID;
+import common.exception.AgentException;
+import common.struct.AgentId;
 import common.util.SnowFlakeGenerator;
 import config.DefaultServerConfig;
 import DolphinMaster.servertask.NodeTask;
 import common.service.AbstractService;
-import message.agent_master_message.HeartBeatRequest;
-import message.agent_master_message.HeartBeatResponse;
+import message.agent_master_message.AgentHeartBeatRequest;
+import message.agent_master_message.AgentHeartBeatResponse;
 import message.agent_master_message.RegisterAgentRequest;
 import message.agent_master_message.RegisterAgentResponse;
 import org.greatfree.exceptions.RemoteReadException;
@@ -42,7 +43,7 @@ public class AgentTrackerService extends AbstractService implements AgentTracker
     }
 
     @Override
-    protected void serviceStart() {
+    protected void serviceStart() throws Exception {
         try {
             this.server.start();
         } catch (IOException e) {
@@ -56,7 +57,7 @@ public class AgentTrackerService extends AbstractService implements AgentTracker
     }
 
     @Override
-    protected void serviceStop() {
+    protected void serviceStop() throws Exception {
         try {
             this.server.stop(2000L);
         } catch (ClassNotFoundException | IOException | InterruptedException | RemoteReadException e) {
@@ -66,25 +67,29 @@ public class AgentTrackerService extends AbstractService implements AgentTracker
     }
 
     @Override
-    public RegisterAgentResponse registerAgentManage(RegisterAgentRequest request) {
-        AgentID agentID = request.getHost();
-        long id = SnowFlakeGenerator.GEN().nextId();
-        agentID.setAgentKey(id);
-        listManage.addInclude(id, agentID);
-        return new RegisterAgentResponse(agentID, dolphinContext
-                .getSecurityManage()
-                .genToken("agent"+id, getName(), 1000L * 60));
+    public RegisterAgentResponse registerAgentManage(RegisterAgentRequest request) throws AgentException {
+        AgentId agentId = request.getAgentId();
+        if (agentId != null) {
+            long id = SnowFlakeGenerator.GEN().nextId();
+            agentId.setAgentKey(id);
+            listManage.addInclude(id, agentId);
+            return new RegisterAgentResponse(agentId, dolphinContext
+                    .getSecurityManage()
+                    .genToken("agent"+id, getName(), 1000L * 60));
+        } else {
+            throw new AgentException("Register agentId is null");
+        }
     }
 
     @Override
-    public HeartBeatResponse agentHeartBeat(HeartBeatRequest request) {
+    public AgentHeartBeatResponse agentHeartBeat(AgentHeartBeatRequest request) {
         if (dolphinContext.getSecurityManage().checkExpire(request.getToken())) {
-            return new HeartBeatResponse(ActionType.EXPIRE_TOKEN,
+            return new AgentHeartBeatResponse(ActionType.EXPIRE_TOKEN,
                     dolphinContext
                             .getSecurityManage()
                             .genToken("agent" + request.getAgentID(), getName(), 1000L * 60));
         }
         this.livelinessMonitor.addMonitored(request.getAgentID());
-        return new HeartBeatResponse(ActionType.NONE, null);
+        return new AgentHeartBeatResponse(ActionType.NONE, null);
     }
 }

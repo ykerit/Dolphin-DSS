@@ -1,12 +1,13 @@
 package DolphinMaster.agentmanage;
 
-import message.agent_master_message.HeartBeatRequest;
-import message.agent_master_message.HeartBeatResponse;
+import common.exception.AgentException;
+import message.agent_master_message.AgentHeartBeatRequest;
+import message.agent_master_message.AgentHeartBeatResponse;
 import message.agent_master_message.RegisterAgentRequest;
 import message.agent_master_message.RegisterAgentResponse;
 
 public interface AgentTracker {
-    RegisterAgentResponse registerAgentManage(RegisterAgentRequest request);
+    RegisterAgentResponse registerAgentManage(RegisterAgentRequest request) throws AgentException;
 
-    HeartBeatResponse agentHeartBeat(HeartBeatRequest request);
+    AgentHeartBeatResponse agentHeartBeat(AgentHeartBeatRequest request);
 }
