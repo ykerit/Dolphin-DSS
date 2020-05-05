@@ -1,4 +1,4 @@
-package agent.appworkmanage.Privileged;
+package common.Privileged;
 
 import common.exception.DolphinRuntimeException;
 

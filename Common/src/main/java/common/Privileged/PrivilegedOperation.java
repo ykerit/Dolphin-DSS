@@ -1,4 +1,4 @@
-package agent.appworkmanage.Privileged;
+package common.Privileged;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -110,9 +110,6 @@ public class PrivilegedOperation {
         return opType.hashCode() + 97 * args.hashCode();
     }
 
-    /**
-     * List of commands that the container-executor will execute.
-     */
     public enum RunAsUserCommand {
         INITIALIZE_CONTAINER(0),
         LAUNCH_CONTAINER(1),
@@ -130,10 +127,6 @@ public class PrivilegedOperation {
         }
     }
 
-    /**
-     * Result codes returned from the C container-executor.
-     * These must match the values in container-executor.h.
-     */
     public enum ResultCode {
         OK(0),
         INVALID_USER_NAME(2),

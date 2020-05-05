@@ -50,8 +50,36 @@ public class Configuration {
 
     private Integer appWorkPriority;
 
-    public long getAgentSendHeartBeatPeriod() {
-        return agentSendHeartBeatPeriod;
+    // Linux Container config
+    public final String DEFAULT_CGROUP_HIERARCHY = "/dolphin";
+    public final long DEFAULT_DELETE_CGROUP_TIMEOUT = 1000L;
+    public final long DEFAULT_DELETE_CGROUP_DELAY = 1000L;
+
+    // hardware setting
+    public final boolean ENABLE_LOGICAL_PROCESSOR = false;
+    public final float DEFAULT_CORES_MULTIPLIER = 1.0f;
+    public final int SYSTEM_RESERVED_MEM_MB = -1;
+
+    private void configure() {
+        agentMonitorInterval = Long.parseLong((String) resourceBundle.getObject(AGENT_MONITOR_INTERVAL));
+        agentHeartBeatTimeOut = Long.parseLong((String) resourceBundle.getObject(AGENT_HEART_BEAT_TIME_OUT));
+        agentHeartBeatTimeOutFrequency = Long.parseLong((String) resourceBundle.getObject(AGENT_HEART_BEAT_TIME_OUT_FREQUENCY));
+
+        appMasterMonitorInterval = Long.parseLong((String) resourceBundle.getObject(APP_MASTER_HEART_BEAT_TIME_OUT));
+        appMasterHeartBeatTimeOut = Long.parseLong((String) resourceBundle.getObject(APP_MASTER_MONITOR_INTERVAL));
+        appMasterHeartBeatTimeOutFrequency = Long.parseLong((String) resourceBundle.getObject(APP_MASTER_HEART_BEAT_TIME_OUT_FREQUENCY));
+
+        dolphinMasterNodeHost = getIPAddress(DOLPHIN_MASTER_NODE_PORT);
+        dolphinMasterClientHost = getIPAddress(DOLPHIN_MASTER_CLIENT_PORT);
+        dolphinMasterWebHost = getIPAddress(DOLPHIN_MASTER_WEB_PORT);
+        dolphinMasterAdminHost = getIPAddress(DOLPHIN_MASTER_ADMIN_PORT);
+
+        agentSendHeartBeatPeriod = Long.parseLong(resourceBundle.getString(AGENT_SEND_HEART_BEAT_PERIOD));
+        agentResourceMonitorInterval = Long.parseLong(resourceBundle.getString(AGENT_RESOURCE_MONITOR_INTERVAL));
+
+        cephConfDir = resourceBundle.getString(CEPH_CONF_DIR);
+
+        appWorkPriority = Integer.parseInt(resourceBundle.getString(APP_WORK_PRIORITY));
     }
 
     public Configuration() {
@@ -71,26 +99,8 @@ public class Configuration {
         return agentResourceMonitorInterval;
     }
 
-    void configure() {
-        agentMonitorInterval = Long.parseLong((String) resourceBundle.getObject(AGENT_MONITOR_INTERVAL));
-        agentHeartBeatTimeOut = Long.parseLong((String) resourceBundle.getObject(AGENT_HEART_BEAT_TIME_OUT));
-        agentHeartBeatTimeOutFrequency = Long.parseLong((String)resourceBundle.getObject(AGENT_HEART_BEAT_TIME_OUT_FREQUENCY));
-
-        appMasterMonitorInterval = Long.parseLong((String)resourceBundle.getObject(APP_MASTER_HEART_BEAT_TIME_OUT));
-        appMasterHeartBeatTimeOut = Long.parseLong((String)resourceBundle.getObject(APP_MASTER_MONITOR_INTERVAL));
-        appMasterHeartBeatTimeOutFrequency = Long.parseLong((String)resourceBundle.getObject(APP_MASTER_HEART_BEAT_TIME_OUT_FREQUENCY));
-
-        dolphinMasterNodeHost = getIPAddress(DOLPHIN_MASTER_NODE_PORT);
-        dolphinMasterClientHost = getIPAddress(DOLPHIN_MASTER_CLIENT_PORT);
-        dolphinMasterWebHost = getIPAddress(DOLPHIN_MASTER_WEB_PORT);
-        dolphinMasterAdminHost = getIPAddress(DOLPHIN_MASTER_ADMIN_PORT);
-
-        agentSendHeartBeatPeriod = Long.parseLong(resourceBundle.getString(AGENT_SEND_HEART_BEAT_PERIOD));
-        agentResourceMonitorInterval = Long.parseLong(resourceBundle.getString(AGENT_RESOURCE_MONITOR_INTERVAL));
-
-        cephConfDir = resourceBundle.getString(CEPH_CONF_DIR);
-
-        appWorkPriority = Integer.parseInt(resourceBundle.getString(APP_WORK_PRIORITY));
+    public long getAgentSendHeartBeatPeriod() {
+        return agentSendHeartBeatPeriod;
     }
 
     public long getAgentMonitorInterval() {
