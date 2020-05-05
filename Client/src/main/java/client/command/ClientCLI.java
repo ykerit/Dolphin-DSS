@@ -34,16 +34,6 @@ public class ClientCLI {
             commander.usage();
             return;
         }
-        Resource appMaster = new Resource();
-        appMaster.cpuSet = "1";
-        appMaster.cpuShare = "asdsa";
-        appMaster.memory = "1asdj";
-
-        client.submitApplication(exe, "yker",
-                "boss",
-                1,
-                new AppMasterSpec(appMaster, "", null));
-
     }
 
 }

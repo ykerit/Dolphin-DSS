@@ -1,13 +1,12 @@
 package DolphinMaster.agentmanage;
 
 import DolphinMaster.DolphinContext;
-import DolphinMaster.servertask.NodeTask;
+import DolphinMaster.servertask.AgentTask;
 import agent.message.AgentHeartBeatRequest;
 import agent.message.AgentHeartBeatResponse;
 import agent.message.RegisterAgentRequest;
 import agent.message.RegisterAgentResponse;
 import agent.status.AgentAction;
-import common.event.ActionType;
 import common.exception.AgentException;
 import common.service.AbstractService;
 import common.struct.AgentId;
@@ -38,7 +37,7 @@ public class AgentTrackerService extends AbstractService implements AgentTracker
     @Override
     protected void serviceInit() throws Exception {
         try {
-            this.server = new ServerContainer(DefaultServerConfig.NODE_TRACKER_PORT, new NodeTask(this.dolphinContext));
+            this.server = new ServerContainer(DefaultServerConfig.NODE_TRACKER_PORT, new AgentTask(this.dolphinContext));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -80,7 +79,7 @@ public class AgentTrackerService extends AbstractService implements AgentTracker
                     .getSecurityManage()
                     .genToken("agent" + id, getName(), 1000L * 60));
         } else {
-            throw new AgentException("Register agentId is null");
+            throw new AgentException("Agent information lost");
         }
     }
 

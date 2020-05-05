@@ -5,7 +5,7 @@ import org.apache.logging.log4j.Logger;
 
 public class App {
     private static Logger logger = LogManager.getLogger("test");
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         DolphinMaster dolphinMaster = new DolphinMaster();
         dolphinMaster.init();
         dolphinMaster.start();
