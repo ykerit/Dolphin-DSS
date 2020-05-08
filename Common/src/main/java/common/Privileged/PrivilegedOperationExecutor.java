@@ -24,7 +24,7 @@ public class PrivilegedOperationExecutor {
 
     public static String getContainerExecutorExecutablePath(Configuration conf) {
 
-        return null;
+        return conf.DEFAULT_APP_WORK_EXECUTOR_PATH;
     }
 
     private void init(Configuration conf) {
@@ -57,7 +57,7 @@ public class PrivilegedOperationExecutor {
     public String[] getPrivilegedOperationExecutionCommand(List<String>
                                                                    prefixCommands,
                                                            PrivilegedOperation operation) {
-        List<String> fullCommand = new ArrayList<String>();
+        List<String> fullCommand = new ArrayList<>();
 
         if (prefixCommands != null && !prefixCommands.isEmpty()) {
             fullCommand.addAll(prefixCommands);

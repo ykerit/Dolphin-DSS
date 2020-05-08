@@ -1,69 +1,65 @@
 package agent;
 
-import com.codahale.metrics.Gauge;
+import com.codahale.metrics.ConsoleReporter;
+import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricRegistry;
-import com.google.common.util.concurrent.AtomicDouble;
-import common.service.AbstractService;
-import common.util.StreamReporter;
+import common.annotation.Metrics;
+import common.util.GaugeHelp.GaugeDouble;
+import common.util.GaugeHelp.GaugeInt;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import java.lang.reflect.Field;
+import java.util.concurrent.TimeUnit;
 
-public class AgentManageMetrics extends AbstractService {
+public class AgentManageMetrics {
     static final MetricRegistry metrics = new MetricRegistry();
 
-    // Metrics listen
-    Gauge<AtomicInteger> agentUsedMemGBListener;
-    Gauge<AtomicDouble> agentCpuUtilizationListener;
-
     // Monitored
-    private AtomicInteger agentUsedMemGB = new AtomicInteger(0);
-    private AtomicDouble agentCpuUtilization = new AtomicDouble(0);
+    @Metrics(name = "Current used memory by this agent in GB")
+    private GaugeInt agentUsedMemGB;
+    @Metrics(name = "Current CPU utilization")
+    private GaugeDouble agentCpuUtilization;
+    @Metrics(name = "Current Memory available in GB")
+    private GaugeInt availableGB;
+    @Metrics(name = "Current CPU available virtual Cores")
+    private GaugeInt availableVCores;
 
-    private StreamReporter reporter;
+    private long availableMB;
+
+    public void autoRegister() {
+        Class clazz = null;
+        try {
+            clazz = Class.forName("agent.AgentManageMetrics");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        Field[] fields = clazz.getDeclaredFields();
+
+        for (Field field : fields) {
+            Metrics metricAnnotation = field.getDeclaredAnnotation(Metrics.class);
+            if (metricAnnotation != null) {
+                Class<?> cls = field.getType();
+                try {
+                    Metric metric = (Metric) cls.newInstance();
+                    field.set(this, metric);
+                    metrics.register(metricAnnotation.name(), metric);
+                } catch (IllegalAccessException | InstantiationException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
 
     public AgentManageMetrics() {
-        super(AgentManageMetrics.class.getName());
-    }
-
-    @Override
-    protected void serviceInit() throws Exception {
-        agentCpuUtilizationListener = new Gauge<AtomicDouble>() {
-            @Override
-            public AtomicDouble getValue() {
-                return agentCpuUtilization;
-            }
-        };
-
-        agentUsedMemGBListener = new Gauge<AtomicInteger>() {
-            @Override
-            public AtomicInteger getValue() {
-                return agentUsedMemGB;
-            }
-        };
-
-        metrics.register("Current used memory by this node in GB", agentUsedMemGBListener);
-        metrics.register("Current CPU utilization", agentCpuUtilizationListener);
-
-        reporter = StreamReporter.forRegistry(metrics).build();
-        super.serviceInit();
-    }
-
-    @Override
-    protected void serviceStart() throws Exception {
-        super.serviceStart();
-    }
-
-    @Override
-    protected void serviceStop() throws Exception {
-        super.serviceStop();
+        autoRegister();
     }
 
     public void setAgentUsedMemGB(long totalUsedMemGB) {
-        agentUsedMemGB.set((int)Math.floor(totalUsedMemGB/1024d));
+        agentUsedMemGB.set((int) Math.floor(totalUsedMemGB / 1024d));
+
     }
 
     public int getAgentUsedMemGB() {
-        return agentUsedMemGB.get();
+        return agentUsedMemGB.getValue().get();
     }
 
     public void setAgentCpuUtilization(double cpuUtilization) {
@@ -71,10 +67,14 @@ public class AgentManageMetrics extends AbstractService {
     }
 
     public double getAgentCpuUtilization() {
-        return agentCpuUtilization.get();
+        return agentCpuUtilization.getValue().get();
     }
 
-    public StreamReporter getReporter() {
-        return reporter;
+    void report() {
+        final ConsoleReporter reporter = ConsoleReporter.forRegistry(metrics)
+                .convertRatesTo(TimeUnit.SECONDS)
+                .convertDurationsTo(TimeUnit.MILLISECONDS)
+                .build();
+        reporter.start(1, TimeUnit.SECONDS);
     }
 }

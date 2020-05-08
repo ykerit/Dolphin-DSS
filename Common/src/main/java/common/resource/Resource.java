@@ -42,7 +42,7 @@ public class Resource implements Comparable<Resource>, Serializable {
         initResourceInformation(memory, vCores);
     }
 
-    void initResourceInformation(long memory, int vCores) {
+    private void initResourceInformation(long memory, int vCores) {
         memoryResInfo = newDefaultInformation(MEMORY_KEY, MEMORY_MB.getUnits(), memory);
         vCoreResInfo = newDefaultInformation(VCORES_KEY, VCORES.getUnits(), vCores);
         resources = new ResourceInformation[2];
@@ -50,7 +50,7 @@ public class Resource implements Comparable<Resource>, Serializable {
         resources[1] = vCoreResInfo;
     }
 
-    ResourceInformation newDefaultInformation(String name, String units, long value) {
+    private ResourceInformation newDefaultInformation(String name, String units, long value) {
         ResourceInformation ri = new ResourceInformation();
         ri.setName(name);
         ri.setValue(value);
@@ -70,6 +70,24 @@ public class Resource implements Comparable<Resource>, Serializable {
         } else {
             return -1;
         }
+    }
+
+    @Override
+    public String toString() {
+        StringBuffer buffer = new StringBuffer();
+        buffer.append("<vCores: ").append(getVCore()).append(", memory: ").append(getMemorySize());
+        for (int i = 2; i < resources.length; ++i) {
+            ResourceInformation ri = resources[i];
+            if (ri.getValue() == 0) {
+                continue;
+            }
+            buffer.append(", ")
+                    .append(ri.getName()).append(": ")
+                    .append(ri.getValue())
+                    .append(ri.getUnits());
+        }
+        buffer.append(">");
+        return buffer.toString();
     }
 
     static int castToInt(long value) {

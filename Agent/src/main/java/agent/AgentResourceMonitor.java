@@ -79,8 +79,8 @@ public class AgentResourceMonitor extends AbstractService {
 
                 AgentManageMetrics metrics = context.getMetrics();
                 if (metrics != null) {
-                    metrics.setAgentCpuUtilization(resourceUtilization.getCpu());
-                    metrics.setAgentUsedMemGB(resourceUtilization.getMemory());
+//                    metrics.setAgentCpuUtilization(resourceUtilization.getCpu());
+//                    metrics.setAgentUsedMemGB(resourceUtilization.getMemory());
                 }
 
                 try {

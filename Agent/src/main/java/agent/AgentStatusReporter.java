@@ -10,9 +10,11 @@ import agent.status.AppWorkStatus;
 import common.event.EventDispatcher;
 import common.exception.DolphinRuntimeException;
 import common.resource.Resource;
+import common.resource.ResourceCollector;
 import common.resource.ResourceUtilization;
 import common.service.AbstractService;
 import common.struct.AgentId;
+import common.util.HardwareUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.greatfree.client.StandaloneClient;
@@ -36,17 +38,17 @@ public class AgentStatusReporter extends AbstractService {
 
     private final AgentManageMetrics metrics;
 
-    private Map<Long, Long> appTokenKeepAliveMap =
-            new HashMap<Long, Long>();
+    private Map<Long, Long> appTokenKeepAliveMap = new HashMap<>();
 
     // AppWork
     private final Map<String, Long> recentlyStoppedAppWork;
     private final Map<String, AppWorkState> pendingCompleteAppWork;
 
+    // status manage
     private Thread statusReporter;
     private Runnable statusReporterRunnable;
+    private boolean failedToConnect = false;
     private boolean registerSuccess = false;
-
     private volatile boolean shutdown = false;
 
     public AgentStatusReporter(Context context, EventDispatcher dispatcher, AgentManageMetrics metrics) {
@@ -60,6 +62,19 @@ public class AgentStatusReporter extends AbstractService {
 
     @Override
     protected void serviceInit() throws Exception {
+        ResourceCollector collector = ResourceCollector.newInstance();
+        this.totalResource = HardwareUtils.getNodeResources(collector, context.getConfiguration());
+        long memoryMB = totalResource.getMemorySize();
+        int virtualCores = totalResource.getVCore();
+        long physicalMemoryMB = memoryMB;
+        int physicalCores = virtualCores;
+        if (collector != null) {
+            physicalCores = collector.getNumProcessors();
+            physicalMemoryMB = collector.getMemorySize() / (1024 * 1024);
+        }
+        this.physicalResource = Resource.newInstance(physicalMemoryMB, physicalCores);
+
+        log.info("AgentManager resources is: {}", totalResource);
         this.agentId = new AgentId(Tools.getLocalIP());
         super.serviceInit();
     }
@@ -117,7 +132,7 @@ public class AgentStatusReporter extends AbstractService {
                     notification);
             log.info("Successfully Unregister the agent " + this.agentId + " with DolphinMaster");
         } catch (IOException | InterruptedException e) {
-            log.warn("UnregisterDolphin failed node is " + this.agentId);
+            log.warn("UnregisterDolphin failed agent is " + this.agentId);
         }
     }
 
@@ -179,10 +194,10 @@ public class AgentStatusReporter extends AbstractService {
     protected AgentStatus getAgentStatus() {
         List<AppWorkStatus> appWorkStatuses = getAppWorkStatuses();
         ResourceUtilization agentUtilization = getAgentUtilization();
-        ResourceUtilization appWorkUtilization = getAppWorkUtilization();
+//        ResourceUtilization appWorkUtilization = getAppWorkUtilization();
         AgentStatus status = new AgentStatus(agentId,
                 appWorkStatuses, createKeepAliveApplicationList(),
-                appWorkUtilization, agentUtilization);
+                null, agentUtilization);
         return status;
     }
 
@@ -218,10 +233,15 @@ public class AgentStatusReporter extends AbstractService {
                     updateToken(response);
 
                     if (!processActionCommand(response)) {
-
                     }
                 } catch (Exception e) {
                     log.error("Agent Heartbeat send error");
+                }
+
+                try {
+                    Thread.sleep(3000L);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
             }
         }

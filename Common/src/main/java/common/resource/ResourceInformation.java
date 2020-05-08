@@ -2,10 +2,11 @@ package common.resource;
 
 import com.google.common.collect.ImmutableSet;
 
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
-public class ResourceInformation {
+public class ResourceInformation implements Serializable {
     private String name;
     private String units;
     private long value;

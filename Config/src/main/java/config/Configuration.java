@@ -49,6 +49,8 @@ public class Configuration {
     private String cephConfDir;
 
     private Integer appWorkPriority;
+    // AppWork setting
+    public final String DEFAULT_APP_WORK_EXECUTOR_PATH = "dolphin.app-work-executor.path";
 
     // Linux Container config
     public final String DEFAULT_CGROUP_HIERARCHY = "/dolphin";

@@ -90,14 +90,18 @@ public class CGroupsHandlerImp implements CGroupsHandler {
         File rootHierarchy = new File(controllerPath);
         File dolphinHierarchy = new File(rootHierarchy, cGroupPrefix);
         String subsystemName = controller.getName();
-        log.info("Initializing mounted controller" + subsystemName + " " + "at " + dolphinHierarchy);
+        log.info("Initializing mounted controller " + subsystemName + " " + "at " + dolphinHierarchy);
 
         if (!rootHierarchy.exists()) {
             throw new ResourceHandleException("Cgroups mount point does not exist");
         } else if (!dolphinHierarchy.exists()) {
             log.info("control group does not exist, now creating");
-            if (!dolphinHierarchy.mkdir()) {
-                throw new ResourceHandleException("can't create dolphin cgroup");
+            try {
+                if (!dolphinHierarchy.mkdir()) {
+                    throw new ResourceHandleException("can't create dolphin cgroup");
+                }
+            } catch (SecurityException e) {
+                throw new ResourceHandleException("No permission to create cgroup hierarchy", e);
             }
         }
     }
@@ -274,5 +278,15 @@ public class CGroupsHandlerImp implements CGroupsHandler {
             throw new IOException("Error while reading " + mtab, e);
         }
         return ret;
+    }
+
+    @Override
+    public String toString() {
+        return CGroupsHandlerImp.class.getName() + " { " +
+                "mountInfo=" + mountInfoFile + '\'' +
+                ", cGroupPrefix='" + cGroupPrefix + '\'' +
+                ", deleteCGroupTimeout=" + deleteCGroupTimeout +
+                ", deleteCGroupDelay=" + deleteCGroupDelay +
+                '}';
     }
 }

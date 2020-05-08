@@ -18,4 +18,6 @@ dependencies {
 application {
     // Define the main class for the application.
     mainClassName = 'agent.App'
+
+    applicationDefaultJvmArgs = ['-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005']
 }

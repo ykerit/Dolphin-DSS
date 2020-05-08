@@ -1,12 +1,10 @@
 package agent;
 
 import com.codahale.metrics.ConsoleReporter;
-import com.codahale.metrics.CsvReporter;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
 import org.junit.Test;
 
-import java.io.File;
 import java.util.concurrent.TimeUnit;
 
 public class MetricTest {
@@ -32,6 +30,22 @@ public class MetricTest {
         };
         metrics.register(MetricRegistry.name("cpu usage"), integerGauge);
 
-        while (true);
+        while (true) ;
+    }
+
+    @Test
+    public void testAutoRegister() {
+        AgentManageMetrics metrics = new AgentManageMetrics();
+        metrics.autoRegister();
+    }
+
+    @Test
+    public void testAgentManageMetrics() throws Exception {
+        AgentManageMetrics metrics = new AgentManageMetrics();
+        metrics.report();
+        Thread.sleep(3000L);
+        metrics.setAgentUsedMemGB(10000000000L);
+        metrics.setAgentCpuUtilization(20);
+        while (true) ;
     }
 }

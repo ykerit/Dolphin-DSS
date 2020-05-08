@@ -1,6 +1,6 @@
 package common.annotation;
 
-import common.http_server.MethodType;
+import common.webserver.MethodType;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

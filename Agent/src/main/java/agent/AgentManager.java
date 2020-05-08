@@ -47,7 +47,6 @@ public class AgentManager extends ChaosService implements EventProcessor<AgentEv
 
         // ----------Agent Metrics ----------
         this.metrics = createMetrics();
-        addService(this.metrics);
         this.context.setMetrics(this.metrics);
 
         // ----------Agent Status Poll Service-------

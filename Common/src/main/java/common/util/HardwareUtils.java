@@ -1,17 +1,14 @@
 package common.util;
 
-import common.exception.DolphinRuntimeException;
 import common.resource.Resource;
 import common.resource.ResourceCollector;
-import common.resource.ResourceInformation;
 import config.Configuration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.Map;
-
 public class HardwareUtils {
     private static final Logger log = LogManager.getLogger("HardwareUtils");
+
     public static int getNodeCPUs(Configuration configuration) {
         ResourceCollector collector = new ResourceCollector();
         return getNodeCPUs(collector, configuration);
@@ -46,6 +43,7 @@ public class HardwareUtils {
         ResourceCollector collector = new ResourceCollector();
         return getVCoresInternal(collector, configuration);
     }
+
     public static int getVCore(ResourceCollector collector, Configuration configuration) {
         return getVCoresInternal(collector, configuration);
     }
@@ -77,7 +75,7 @@ public class HardwareUtils {
     }
 
     private static long getAppWorkMemoryMBInternal(ResourceCollector plugin,
-                                                     Configuration conf) {
+                                                   Configuration conf) {
         long memoryMb;
         long physicalMemoryMB = (plugin.getMemorySize() / (1024 * 1024));
         long HeapSizeMB = (Runtime.getRuntime().maxMemory()
@@ -95,7 +93,7 @@ public class HardwareUtils {
         }
         containerPhysicalMemoryMB = Math.max(containerPhysicalMemoryMB, 0);
         memoryMb = containerPhysicalMemoryMB;
-        if(memoryMb <= 0) {
+        if (memoryMb <= 0) {
             String message = "Illegal value for memory"
                     + ". Value must be greater than 0.";
             throw new IllegalArgumentException(message);
@@ -105,11 +103,8 @@ public class HardwareUtils {
 
 
     // not done
-    public static Resource getNodeResources(Configuration configuration) {
-        String memory = ResourceInformation.MEMORY_MB.getName();
-        String vcores = ResourceInformation.VCORES.getName();
-
-        Resource ret = Resource.newInstance(0, 0);
+    public static Resource getNodeResources(ResourceCollector collector, Configuration configuration) {
+        Resource ret = Resource.newInstance(collector.getMemorySize(), collector.getNumCores());
         return ret;
     }
 }

@@ -157,10 +157,12 @@ public class CpuResourceHandle implements ResourceHandler {
         if (quotaFile.exists()) {
             String contents = FileUtils.readFileToString(quotaFile, "UTF-8");
             int quotaUS = Integer.parseInt(contents.trim());
+            log.info("quota: {}", quotaUS);
             if (quotaUS != -1) {
                 return true;
             }
         }
         return false;
     }
+
 }

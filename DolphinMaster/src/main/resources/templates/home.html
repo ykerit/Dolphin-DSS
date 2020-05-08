@@ -1,0 +1,28 @@
+<div id="main" style="width: 200px;height:200px;"></div>
+<script src="lib/echarts.min.js"></script>
+<script type="text/javascript">
+    var dom = document.getElementById('main')
+    var myChart = echarts.init(dom);
+
+    // 指定图表的配置项和数据
+    var option = {
+        tooltip: {
+            formatter: '{a} <br/>{b} : {c}%'
+        },
+        toolbox: {
+            feature: {
+                restore: {},
+                saceAsImage: {}
+            }
+        },
+        series: [{
+            name: 'cpu使用率',
+            type: 'gauge',
+            detail: {formatter: '{value}%'},
+            data: [{value: 50, name: 'CPU使用率'}]
+        }]
+    };
+
+    // 使用刚指定的配置项和数据显示图表。
+    myChart.setOption(option);
+</script>

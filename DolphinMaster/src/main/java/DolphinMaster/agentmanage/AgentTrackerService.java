@@ -12,6 +12,8 @@ import common.service.AbstractService;
 import common.struct.AgentId;
 import common.util.SnowFlakeGenerator;
 import config.DefaultServerConfig;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.greatfree.exceptions.RemoteReadException;
 import org.greatfree.server.container.ServerContainer;
 
@@ -19,6 +21,7 @@ import org.greatfree.server.container.ServerContainer;
 import java.io.IOException;
 
 public class AgentTrackerService extends AbstractService implements AgentTracker {
+    private static final Logger log = LogManager.getLogger(AgentTrackerService.class.getName());
 
     private ServerContainer server;
     private final DolphinContext dolphinContext;
@@ -75,6 +78,8 @@ public class AgentTrackerService extends AbstractService implements AgentTracker
             long id = SnowFlakeGenerator.GEN().nextId();
             agentId.setAgentKey(id);
             listManage.addInclude(id, agentId);
+            log.info("physical: \n {}", request.getPhysicalResource());
+            log.info("total: \n {}", request.getResource());
             return new RegisterAgentResponse(agentId, dolphinContext
                     .getSecurityManage()
                     .genToken("agent" + id, getName(), 1000L * 60));

@@ -1,5 +1,6 @@
 package agent.appworkmanage.monitor;
 
+import common.resource.Resource;
 import common.resource.ResourceUtilization;
 import common.service.ServiceState;
 
@@ -26,7 +27,7 @@ public class AppWorkMonitorImp implements AppWorkMonitor {
 
     @Override
     public String getName() {
-        return null;
+        return AppWorkMonitor.class.getName();
     }
 
     @Override
@@ -37,5 +38,10 @@ public class AppWorkMonitorImp implements AppWorkMonitor {
     @Override
     public ResourceUtilization getAppWorkUtilization() {
         return null;
+    }
+
+    @Override
+    public void setAllocateResourceForAppWork(Resource resource) {
+
     }
 }

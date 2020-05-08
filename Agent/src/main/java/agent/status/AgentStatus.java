@@ -4,9 +4,10 @@ import agent.appworkmanage.appwork.AppWork;
 import common.resource.ResourceUtilization;
 import common.struct.AgentId;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class AgentStatus {
+public class AgentStatus implements Serializable {
     private final AgentId agentId;
     private final List<AppWorkStatus> appWorkStatuses;
     private final List<Long> keepAliveApplications;

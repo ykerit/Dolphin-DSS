@@ -1,6 +1,8 @@
 package common.resource;
 
-public class ResourceUtilization implements Comparable<ResourceUtilization>{
+import java.io.Serializable;
+
+public class ResourceUtilization implements Comparable<ResourceUtilization>, Serializable {
 
     private int memory;
     private double cpu;

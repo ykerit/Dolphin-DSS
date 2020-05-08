@@ -27,17 +27,17 @@ public abstract class AppWorkExecutor {
     public void prepareAppWork(AppWorkPrepareContext ctx) throws IOException {
     }
 
-    public abstract void startLocalizer(LocalizerStartContext ctx);
+    public abstract void startLocalizer(LocalizerStartContext ctx) throws IOException;
 
     // Launch AppWork on the node, This is a blocking call and return only AppWork exit
-    public abstract int launchAppWork(AppWorkStartContext ctx);
+    public abstract int launchAppWork(AppWorkStartContext ctx) throws IOException;
 
     // Relaunch AppWork on the node, This is a blocking call and return only AppWork exit
-    public abstract int relaunchAppWork(AppWorkStartContext ctx);
+    public abstract int relaunchAppWork(AppWorkStartContext ctx) throws IOException;
 
     public abstract boolean signalAppWork(AppWorkSignalContext ctx) throws IOException;
 
-    public abstract boolean reapAppWork();
+    public abstract boolean reapAppWork() throws IOException;
 
     // C or C++ program
     public abstract void symLink(String target, String symlink);
