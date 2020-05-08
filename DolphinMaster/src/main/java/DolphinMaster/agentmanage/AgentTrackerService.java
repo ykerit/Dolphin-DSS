@@ -1,22 +1,27 @@
 package DolphinMaster.agentmanage;
 
 import DolphinMaster.DolphinContext;
+import DolphinMaster.node.AgentStartedEvent;
+import DolphinMaster.node.Node;
+import DolphinMaster.node.NodeImp;
+import DolphinMaster.node.NodeState;
+import DolphinMaster.security.SecurityManager;
 import DolphinMaster.servertask.AgentTask;
 import agent.message.AgentHeartBeatRequest;
 import agent.message.AgentHeartBeatResponse;
 import agent.message.RegisterAgentRequest;
 import agent.message.RegisterAgentResponse;
 import agent.status.AgentAction;
-import common.exception.AgentException;
+import agent.status.AgentStatus;
+import common.exception.DolphinException;
+import common.exception.DolphinRuntimeException;
+import common.resource.Resource;
 import common.service.AbstractService;
 import common.struct.AgentId;
-import common.util.SnowFlakeGenerator;
 import config.DefaultServerConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.greatfree.exceptions.RemoteReadException;
 import org.greatfree.server.container.ServerContainer;
-
 
 import java.io.IOException;
 
@@ -27,14 +32,20 @@ public class AgentTrackerService extends AbstractService implements AgentTracker
     private final DolphinContext dolphinContext;
     private final AgentLivelinessMonitor livelinessMonitor;
     private final AgentListManage listManage;
+    private final SecurityManager securityManager;
+
+    private int minAllocMB;
+    private int minAllocVCores;
 
     public AgentTrackerService(DolphinContext dolphinContext,
                                AgentLivelinessMonitor livelinessMonitor,
-                               AgentListManage agentListManage) {
+                               AgentListManage agentListManage,
+                               SecurityManager securityManager) {
         super(AgentTrackerService.class.getName());
         this.dolphinContext = dolphinContext;
         this.livelinessMonitor = livelinessMonitor;
         this.listManage = agentListManage;
+        this.securityManager = securityManager;
     }
 
     @Override
@@ -42,61 +53,120 @@ public class AgentTrackerService extends AbstractService implements AgentTracker
         try {
             this.server = new ServerContainer(DefaultServerConfig.NODE_TRACKER_PORT, new AgentTask(this.dolphinContext));
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new DolphinRuntimeException("Failed to create server container", e);
         }
+        minAllocMB = 1000;
+        minAllocVCores = 1;
+
         super.serviceInit();
     }
 
     @Override
     protected void serviceStart() throws Exception {
-        try {
-            this.server.start();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } catch (RemoteReadException e) {
-            e.printStackTrace();
-        }
+        this.server.start();
         super.serviceStart();
     }
 
     @Override
     protected void serviceStop() throws Exception {
-        try {
-            this.server.stop(2000L);
-        } catch (ClassNotFoundException | IOException | InterruptedException | RemoteReadException e) {
-            e.printStackTrace();
-        }
+        this.server.stop(2000L);
         super.serviceStop();
     }
 
     @Override
-    public RegisterAgentResponse registerAgentManage(RegisterAgentRequest request) throws AgentException {
+    public RegisterAgentResponse registerAgentManager(RegisterAgentRequest request) throws DolphinException {
         AgentId agentId = request.getAgentId();
-        if (agentId != null) {
-            long id = SnowFlakeGenerator.GEN().nextId();
-            agentId.setAgentKey(id);
-            listManage.addInclude(id, agentId);
-            log.info("physical: \n {}", request.getPhysicalResource());
-            log.info("total: \n {}", request.getResource());
-            return new RegisterAgentResponse(agentId, dolphinContext
-                    .getSecurityManage()
-                    .genToken("agent" + id, getName(), 1000L * 60));
-        } else {
-            throw new AgentException("Agent information lost");
+        String hostname = agentId.getHostname();
+        Resource capability = request.getResource();
+        Resource physicalResource = request.getPhysicalResource();
+
+        RegisterAgentResponse response = new RegisterAgentResponse();
+        if (capability.getMemorySize() < minAllocMB) {
+            String message = "Available resource of node is less than the minimum allocated resource unit：" +
+                    "Node resource is: " + capability + "; minAllocMB is: " + minAllocMB + "mb and minVCores is: "
+                    + minAllocVCores;
+            log.info(message);
+            response.setAction(AgentAction.SHUTDOWN);
+            response.setTips(message);
+            return response;
         }
+        String masterToken = securityManager.genToken(agentId.toString(), getName());
+        response.setToken(masterToken);
+        if (!isValidNode(agentId)) {
+            String errMsg = "Not allowed AgentManager AgentId: " +
+                    agentId +
+                    ", hostname: " +
+                    agentId.getHostname();
+            log.info(errMsg);
+            response.setAction(AgentAction.SHUTDOWN);
+            response.setTips(errMsg);
+            return response;
+        }
+        Node node = new NodeImp(agentId, dolphinContext, hostname, capability, physicalResource);
+        Node oldNode = this.dolphinContext.getNodes().putIfAbsent(agentId, node);
+        if (oldNode != null) {
+            AgentStartedEvent startedEvent = new AgentStartedEvent(agentId,
+                    request.getAppWorkStatuses(),
+                    request.getRunningApplications());
+            this.dolphinContext.getDolphinDispatcher().getEventProcessor().process(startedEvent);
+        } else {
+            // nodes is exist agent, so now agent is reconnect
+            this.livelinessMonitor.removeMonitored(agentId);
+            log.info("Reconnect the node is {}", agentId);
+            if (request.getRunningApplications().isEmpty() && node.getState() != NodeState.DECOMMISSIONED) {
+
+            } else {
+
+            }
+        }
+        this.livelinessMonitor.addMonitored(agentId);
+        StringBuilder message = new StringBuilder();
+        message.append("NodeManager from node ").append(hostname)
+                .append("registered with capability: ").append(capability);
+        message.append(", assigned agentId ").append(agentId);
+        log.info(message.toString());
+        response.setAction(AgentAction.NORMAL);
+        return response;
+    }
+
+    @Override
+    public void unregisterAgentManager() throws DolphinException {
+
     }
 
     @Override
     public AgentHeartBeatResponse agentHeartBeat(AgentHeartBeatRequest request) {
-        if (dolphinContext.getSecurityManage().checkExpire(request.getToken())) {
+        AgentStatus status = request.getAgentStatus();
+        AgentId agentId = status.getAgentId();
+
+        AgentHeartBeatResponse response = new AgentHeartBeatResponse();
+        if (!isValidNode(agentId)) {
+            String errMsg = "Not allowed AgentManager AgentId: " + agentId + ", hostname: " + agentId.getHostname();
+            log.info(errMsg);
+            response.setAction(AgentAction.SHUTDOWN);
+            response.setTips(errMsg);
+        }
+
+        Node node = dolphinContext.getNodes().get(agentId);
+        if (node == null) {
+            String message = "Node not found re syncing" + agentId;
+            response.setTips(message);
+            response.setAction(AgentAction.RSYNC);
+        }
+        
+        if (securityManager.checkExpire(request.getToken())) {
             return new AgentHeartBeatResponse(AgentAction.NORMAL,
                     dolphinContext
-                            .getSecurityManage()
-                            .genToken("agent" + request.getAgentStatus().getAgentId(), getName(), 1000L * 60));
+                            .getSecurityManager()
+                            .genToken(agentId.toString(), getName()));
         }
-        this.livelinessMonitor.addMonitored(request.getAgentStatus().getAgentId().getAgentKey());
+        this.livelinessMonitor.addMonitored(request.getAgentStatus().getAgentId());
         return new AgentHeartBeatResponse(AgentAction.NORMAL, null);
     }
+
+    // last do
+    private boolean isValidNode(AgentId id) {
+        return true;
+    }
+
 }

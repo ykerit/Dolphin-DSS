@@ -8,27 +8,23 @@ import org.apache.logging.log4j.Logger;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public abstract class LivelinessMonitor extends AbstractService {
+public abstract class LivelinessMonitor<T> extends AbstractService {
     private static final Logger log = LogManager.getLogger(LivelinessMonitor.class.getName());
     // key is monitorID, value is pair that the first value is latest request time and second value is timeout times
-    private final Map<Long, Pair<Long, Integer>> agentMonitor = new ConcurrentHashMap<>();
+    private final Map<T, Pair<Long, Integer>> running = new ConcurrentHashMap<>();
+    public static final int DEFAULT_EXPIRE = 1000 * 60;
     private volatile boolean shutdown = false;
     private Thread checkerThread;
-    private final long monitorInterval;
-    private final long timeout;
-    private final long frequency;
-    private final CallBack callBack;
+    private long monitorInterval;
+    private long expireInterval = DEFAULT_EXPIRE;
+    private long frequency;
 
     protected interface CallBack {
         void handle(long id);
     }
 
-    public LivelinessMonitor(String name, long monitorInterval, long timeout, long frequency, CallBack callBack) {
+    public LivelinessMonitor(String name) {
         super(name);
-        this.monitorInterval = monitorInterval;
-        this.timeout = timeout;
-        this.frequency = frequency;
-        this.callBack = callBack;
     }
 
     @Override
@@ -45,6 +41,20 @@ public abstract class LivelinessMonitor extends AbstractService {
         super.serviceStop();
     }
 
+    protected abstract void expire(T key);
+
+    protected void setExpireInterval(long expireInterval) {
+        this.expireInterval = expireInterval;
+    }
+
+    protected void setExpireFrequency(int frequency) {
+        this.frequency = frequency;
+    }
+
+    protected void setMonitorInterval(long interval) {
+        this.monitorInterval = interval;
+    }
+
     private class Monitor implements Runnable {
 
         @Override
@@ -52,18 +62,18 @@ public abstract class LivelinessMonitor extends AbstractService {
             while (!shutdown && !Thread.currentThread().isInterrupted()) {
                 // Loop for check node state;
                 synchronized (LivelinessMonitor.class) {
-                    log.info("current monitor: {}", agentMonitor.size());
-                    for(Map.Entry<Long, Pair<Long, Integer>> agent : agentMonitor.entrySet()) {
-                        long monitorID = agent.getKey();
+                    log.info("the {}, current monitor size is: {}", getName(), running.size());
+                    for (Map.Entry<T, Pair<Long, Integer>> agent : running.entrySet()) {
+                        T monitor = agent.getKey();
                         Pair<Long, Integer> pair = agent.getValue();
                         long gap = System.currentTimeMillis() - pair.first;
-                        if (gap < 0 || gap > timeout) {
-                            log.info("agentID: {} -- request timeout times={}", monitorID, pair.second);
+                        if (gap < 0 || gap > expireInterval) {
+                            log.info("Agent: {} Heartbeat is expire times = {}", monitor, pair.second);
                             pair.second += 1;
                             if (pair.second >= frequency) {
                                 // agent outline
-                                log.info("lose connect");
-                                callBack.handle(monitorID);
+                                log.info("Agent: {} always dead, now remove it", monitor);
+                                expire(monitor);
                             }
                         }
                     }
@@ -78,16 +88,16 @@ public abstract class LivelinessMonitor extends AbstractService {
         }
     }
 
-    public synchronized void addMonitored(long monitorID) {
+    public synchronized void addMonitored(T monitor) {
         Pair<Long, Integer> pair = null;
-        if ((pair = this.agentMonitor.get(monitorID)) != null) {
+        if ((pair = this.running.get(monitor)) != null) {
             pair.first = System.currentTimeMillis();
         } else
-            this.agentMonitor.put(monitorID, new Pair<Long, Integer>(System.currentTimeMillis(), 0));
+            this.running.put(monitor, new Pair<Long, Integer>(System.currentTimeMillis(), 0));
     }
 
-    public synchronized void removeMonitored(long monitorID) {
-        this.agentMonitor.remove(monitorID);
+    public synchronized void removeMonitored(T monitor) {
+        this.running.remove(monitor);
     }
 
 }

@@ -1,6 +1,6 @@
 package common.exception;
 
-public class DolphinRuntimeException extends Exception {
+public class DolphinRuntimeException extends DolphinException {
 
     public DolphinRuntimeException() { }
 

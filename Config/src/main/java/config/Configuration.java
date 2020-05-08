@@ -32,7 +32,7 @@ public class Configuration {
 
     private long agentMonitorInterval;
     private long agentHeartBeatTimeOut;
-    private long agentHeartBeatTimeOutFrequency;
+    private int agentHeartBeatTimeOutFrequency;
 
     private long appMasterMonitorInterval;
     private long appMasterHeartBeatTimeOut;
@@ -65,7 +65,7 @@ public class Configuration {
     private void configure() {
         agentMonitorInterval = Long.parseLong((String) resourceBundle.getObject(AGENT_MONITOR_INTERVAL));
         agentHeartBeatTimeOut = Long.parseLong((String) resourceBundle.getObject(AGENT_HEART_BEAT_TIME_OUT));
-        agentHeartBeatTimeOutFrequency = Long.parseLong((String) resourceBundle.getObject(AGENT_HEART_BEAT_TIME_OUT_FREQUENCY));
+        agentHeartBeatTimeOutFrequency = Integer.parseInt((String) resourceBundle.getObject(AGENT_HEART_BEAT_TIME_OUT_FREQUENCY));
 
         appMasterMonitorInterval = Long.parseLong((String) resourceBundle.getObject(APP_MASTER_HEART_BEAT_TIME_OUT));
         appMasterHeartBeatTimeOut = Long.parseLong((String) resourceBundle.getObject(APP_MASTER_MONITOR_INTERVAL));
@@ -125,7 +125,7 @@ public class Configuration {
         return agentHeartBeatTimeOut;
     }
 
-    public long getAgentHeartBeatTimeOutFrequency() {
+    public int getAgentHeartBeatTimeOutFrequency() {
         return agentHeartBeatTimeOutFrequency;
     }
 

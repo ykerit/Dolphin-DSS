@@ -5,9 +5,12 @@ import agent.message.AgentHeartBeatResponse;
 import agent.message.RegisterAgentRequest;
 import agent.message.RegisterAgentResponse;
 import common.exception.AgentException;
+import common.exception.DolphinException;
 
 public interface AgentTracker {
-    RegisterAgentResponse registerAgentManage(RegisterAgentRequest request) throws AgentException;
+    RegisterAgentResponse registerAgentManager(RegisterAgentRequest request) throws DolphinException;
+
+    void unregisterAgentManager() throws DolphinException;
 
     AgentHeartBeatResponse agentHeartBeat(AgentHeartBeatRequest request);
 }

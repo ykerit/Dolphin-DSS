@@ -8,6 +8,7 @@ import agent.status.AgentAction;
 import agent.status.AgentStatus;
 import agent.status.AppWorkStatus;
 import common.event.EventDispatcher;
+import common.exception.DolphinException;
 import common.exception.DolphinRuntimeException;
 import common.resource.Resource;
 import common.resource.ResourceCollector;
@@ -101,7 +102,7 @@ public class AgentStatusReporter extends AbstractService {
         super.serviceStop();
     }
 
-    protected void registerWithDolphinMaster() throws IOException, RemoteReadException, ClassNotFoundException {
+    protected void registerWithDolphinMaster() throws IOException, DolphinException, RemoteReadException, ClassNotFoundException {
         RegisterAgentResponse registerResponse = null;
 
         synchronized (this.context) {
@@ -111,10 +112,18 @@ public class AgentStatusReporter extends AbstractService {
             registerResponse = (RegisterAgentResponse) StandaloneClient
                     .CS()
                     .read(remote.getIP(), remote.getPort(), request);
-            this.context.setToken(registerResponse.getToken());
-            agentId = registerResponse.getAgentId();
-            this.context.setAgentId(agentId);
         }
+        if (AgentAction.SHUTDOWN.equals(registerResponse.getAction())) {
+            String message = "Receive from  DolphMaster message: " + registerResponse.getTips();
+            throw new DolphinRuntimeException("Receive SHUTDOWN signal from DolphinMaster:" + message);
+        }
+        String masterKey = registerResponse.getToken();
+        if (masterKey != null) {
+            this.context.setToken(masterKey);
+        }
+
+        agentId = registerResponse.getAgentId();
+        this.context.setAgentId(agentId);
         this.registerSuccess = true;
 
         StringBuffer successfulRegisterMsg = new StringBuffer();
@@ -162,7 +171,7 @@ public class AgentStatusReporter extends AbstractService {
         List<Long> apps = new ArrayList<>();
 
         for (Iterator<Map.Entry<Long, Long>> iterator
-             = this.appTokenKeepAliveMap.entrySet().iterator(); iterator.hasNext();) {
+             = this.appTokenKeepAliveMap.entrySet().iterator(); iterator.hasNext(); ) {
             Map.Entry<Long, Long> e = iterator.next();
             long appId = e.getKey();
             Long nextKeepAlive = e.getValue();
@@ -233,6 +242,7 @@ public class AgentStatusReporter extends AbstractService {
                     updateToken(response);
 
                     if (!processActionCommand(response)) {
+
                     }
                 } catch (Exception e) {
                     log.error("Agent Heartbeat send error");

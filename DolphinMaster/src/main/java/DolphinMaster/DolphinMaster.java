@@ -3,7 +3,7 @@ package DolphinMaster;
 import DolphinMaster.agentmanage.AgentListManage;
 import DolphinMaster.agentmanage.AgentLivelinessMonitor;
 import DolphinMaster.agentmanage.AgentTrackerService;
-import DolphinMaster.security.SecurityManage;
+import DolphinMaster.security.SecurityManager;
 import DolphinMaster.userservice.ClientService;
 import common.event.EventDispatcher;
 import common.service.ChaosService;
@@ -19,7 +19,7 @@ public class DolphinMaster extends ChaosService {
 
     private AgentLivelinessMonitor agentLivelinessMonitor;
     private AgentListManage agentListManage;
-    private SecurityManage securityManage;
+    private SecurityManager securityManager;
 
     public DolphinMaster() {
         super(DolphinMaster.class.getName());
@@ -31,8 +31,8 @@ public class DolphinMaster extends ChaosService {
 
         this.dolphinContext.setConfiguration(new Configuration());
 
-        this.securityManage = new SecurityManage();
-        this.dolphinContext.setSecurityManage(this.securityManage);
+        this.securityManager = new SecurityManager();
+        this.dolphinContext.setSecurityManager(this.securityManager);
 
         // -------------Client service start---------------
         this.clientService = createClientService();
@@ -83,7 +83,7 @@ public class DolphinMaster extends ChaosService {
     }
 
     private AgentLivelinessMonitor createAgentLivelinessMonitor() {
-        return new AgentLivelinessMonitor(this.dolphinContext.getConfiguration(), this.agentListManage);
+        return new AgentLivelinessMonitor(this.dolphinContext.getConfiguration(), this.eventDispatcher);
     }
 
     private AgentListManage createAgentListManage() {
