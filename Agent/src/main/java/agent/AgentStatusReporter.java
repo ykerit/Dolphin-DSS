@@ -1,5 +1,8 @@
 package agent;
 
+import agent.application.Application;
+import common.struct.ApplicationId;
+import agent.application.ApplicationState;
 import agent.appworkmanage.appwork.AppWork;
 import agent.appworkmanage.appwork.AppWorkState;
 import agent.appworkmanage.monitor.AppWorkMonitor;
@@ -39,7 +42,7 @@ public class AgentStatusReporter extends AbstractService {
 
     private final AgentManageMetrics metrics;
 
-    private Map<Long, Long> appTokenKeepAliveMap = new HashMap<>();
+    private Map<ApplicationId, Long> appTokenKeepAliveMap = new HashMap<>();
 
     // AppWork
     private final Map<String, Long> recentlyStoppedAppWork;
@@ -107,7 +110,12 @@ public class AgentStatusReporter extends AbstractService {
 
         synchronized (this.context) {
             RegisterAgentRequest request =
-                    new RegisterAgentRequest(agentId, totalResource, physicalResource);
+                    new RegisterAgentRequest(agentId,
+                            totalResource,
+                            physicalResource,
+                            getAppWorkStatuses(),
+                            getRunningApplications());
+
             IPAddress remote = this.context.getRemote();
             registerResponse = (RegisterAgentResponse) StandaloneClient
                     .CS()
@@ -162,18 +170,18 @@ public class AgentStatusReporter extends AbstractService {
     }
 
     // has question
-    private void trackAppForKeepAlive(long appId) {
+    private void trackAppForKeepAlive(ApplicationId appId) {
         long nextTime = System.currentTimeMillis();
         appTokenKeepAliveMap.put(appId, nextTime);
     }
 
-    private List<Long> createKeepAliveApplicationList() {
-        List<Long> apps = new ArrayList<>();
+    private List<ApplicationId> createKeepAliveApplicationList() {
+        List<ApplicationId> apps = new ArrayList<>();
 
-        for (Iterator<Map.Entry<Long, Long>> iterator
+        for (Iterator<Map.Entry<ApplicationId, Long>> iterator
              = this.appTokenKeepAliveMap.entrySet().iterator(); iterator.hasNext(); ) {
-            Map.Entry<Long, Long> e = iterator.next();
-            long appId = e.getKey();
+            Map.Entry<ApplicationId, Long> e = iterator.next();
+            ApplicationId appId = e.getKey();
             Long nextKeepAlive = e.getValue();
             if (!this.context.getApplications().containsKey(appId)) {
                 iterator.remove();
@@ -185,12 +193,22 @@ public class AgentStatusReporter extends AbstractService {
         return apps;
     }
 
+    protected List<ApplicationId> getRunningApplications() {
+        List<ApplicationId> runningApps = new ArrayList<>();
+        for (Map.Entry<ApplicationId, Application> appEntry : this.context.getApplications().entrySet()) {
+            if (appEntry.getValue().getAppState() != ApplicationState.FINISHED) {
+                runningApps.add(appEntry.getKey());
+            }
+        }
+        return runningApps;
+    }
+
     protected List<AppWorkStatus> getAppWorkStatuses() {
         List<AppWorkStatus> statuses = new ArrayList<>();
 
         for (AppWork appWork : this.context.getAppWorks().values()) {
             String appWorkId = appWork.getAppWorkId();
-            long applicationId = appWork.getAppId();
+            ApplicationId applicationId = appWork.getAppId();
             AppWorkStatus appWorkStatus = appWork.cloneAndGetAppWorkStatus();
             if (appWorkStatus.getState() == AppWorkState.DONE) {
 

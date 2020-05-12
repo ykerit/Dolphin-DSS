@@ -1,0 +1,5 @@
+package agent.application;
+
+public enum  ApplicationState {
+    NEW, INITING, RUNNING, FINISHING_CONTAINERS_WAIT, APPLICATION_RESOURCES_CLEANINGUP, FINISHED
+}

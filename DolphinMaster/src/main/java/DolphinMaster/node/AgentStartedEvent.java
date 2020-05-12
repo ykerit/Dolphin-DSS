@@ -1,6 +1,6 @@
 package DolphinMaster.node;
 
-import agent.application.ApplicationId;
+import common.struct.ApplicationId;
 import agent.status.AppWorkStatus;
 import common.struct.AgentId;
 

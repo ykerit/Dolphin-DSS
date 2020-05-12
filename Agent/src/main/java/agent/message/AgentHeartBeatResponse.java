@@ -1,8 +1,7 @@
 package agent.message;
 
 import agent.status.AgentAction;
-import common.event.ActionType;
-import message.MessageID;
+import api.MessageID;
 import org.greatfree.message.ServerMessage;
 
 public class AgentHeartBeatResponse extends ServerMessage {

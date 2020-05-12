@@ -3,8 +3,6 @@ package client.command;
 import client.Client;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import common.context.AppMasterSpec;
-import common.resource.Resource;
 import org.greatfree.exceptions.RemoteReadException;
 
 import java.io.IOException;

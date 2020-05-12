@@ -38,6 +38,9 @@ public abstract class LivelinessMonitor<T> extends AbstractService {
     @Override
     protected void serviceStop() throws Exception {
         this.shutdown = true;
+        if (checkerThread != null) {
+            checkerThread.interrupt();
+        }
         super.serviceStop();
     }
 

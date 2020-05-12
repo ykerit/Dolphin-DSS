@@ -1,7 +1,7 @@
 package agent.message;
 
 import agent.status.AgentStatus;
-import message.MessageID;
+import api.MessageID;
 import org.greatfree.message.container.Request;
 
 public class AgentHeartBeatRequest extends Request {

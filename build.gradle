@@ -29,7 +29,7 @@ subprojects {
 
 project(':Agent') {
     dependencies {
-        implementation project(':Message')
+        implementation project(':Api')
         implementation project(':Common')
         implementation project(':Config')
 
@@ -38,7 +38,7 @@ project(':Agent') {
 
 project(':Client') {
     dependencies {
-        implementation project(':Message')
+        implementation project(':Api')
         implementation project(':Config')
         implementation project(':Common')
     }
@@ -46,7 +46,7 @@ project(':Client') {
 
 project(':DolphinMaster') {
     dependencies {
-        implementation project(':Message')
+        implementation project(':Api')
         implementation project(':Agent')
         implementation project(':Common')
         implementation project(':Config')
@@ -56,7 +56,7 @@ project(':DolphinMaster') {
     }
 }
 
-project(':Message') {
+project(':Api') {
     dependencies {
         implementation project(':Common')
     }

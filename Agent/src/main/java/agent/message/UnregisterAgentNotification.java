@@ -1,7 +1,7 @@
 package agent.message;
 
 import common.struct.AgentId;
-import message.MessageID;
+import api.MessageID;
 import org.greatfree.message.container.Notification;
 
 public class UnregisterAgentNotification extends Notification {

@@ -1,11 +1,10 @@
 package agent.message;
 
-import agent.application.Application;
-import agent.application.ApplicationId;
+import common.struct.ApplicationId;
 import agent.status.AppWorkStatus;
 import common.resource.Resource;
 import common.struct.AgentId;
-import message.MessageID;
+import api.MessageID;
 import org.greatfree.message.container.Request;
 
 import java.util.List;

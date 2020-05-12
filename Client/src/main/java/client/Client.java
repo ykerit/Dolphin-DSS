@@ -1,16 +1,15 @@
 package client;
 
 import com.ceph.rados.exceptions.RadosException;
-import common.context.AppMasterSpec;
 import common.context.ApplicationSubmission;
 import common.service.ChaosService;
 import common.util.CephService;
 import common.util.RadosFileOperation;
 import config.Configuration;
-import message.client_master_message.ApplicationIDRequest;
-import message.client_master_message.ApplicationIDResponse;
-import message.client_master_message.SubmitApplicationRequest;
-import message.client_master_message.SubmitApplicationResponse;
+import api.client_master_message.ApplicationIDRequest;
+import api.client_master_message.ApplicationIDResponse;
+import api.client_master_message.SubmitApplicationRequest;
+import api.client_master_message.SubmitApplicationResponse;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.greatfree.client.StandaloneClient;
@@ -70,13 +69,11 @@ public class Client extends ChaosService {
         String applicationName = null;
         try {
             RadosFileOperation operation = new RadosFileOperation(this.cephService.getIoContext("rbd"));
-            applicationName = operation.write(applicationPath, response.getApplicationId());
             log.debug("application: {}", applicationName);
         } catch (RadosException e) {
             e.printStackTrace();
         }
         SubmitApplicationRequest request = new SubmitApplicationRequest(
-                new ApplicationSubmission(response.getApplicationId(), applicationName, priority, group, user, spec));
         return (SubmitApplicationResponse) StandaloneClient.CS().read(configuration.getDolphinMasterClientHost().getIP(),
                 configuration.getDolphinMasterClientHost().getPort(), request);
     }

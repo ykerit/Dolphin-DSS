@@ -4,9 +4,9 @@ import DolphinMaster.agentmanage.AgentListManage;
 import DolphinMaster.agentmanage.AgentLivelinessMonitor;
 import DolphinMaster.agentmanage.AgentTrackerService;
 import DolphinMaster.security.SecurityManager;
-import DolphinMaster.userservice.ClientService;
 import common.event.EventDispatcher;
 import common.service.ChaosService;
+import common.util.SystemClock;
 import config.Configuration;
 
 public class DolphinMaster extends ChaosService {
@@ -75,7 +75,8 @@ public class DolphinMaster extends ChaosService {
     }
 
     private AgentTrackerService createAgentTrackerService() {
-        return new AgentTrackerService(this.dolphinContext, this.agentLivelinessMonitor, this.agentListManage);
+        return new AgentTrackerService(this.dolphinContext, this.agentLivelinessMonitor,
+                this.agentListManage, this.securityManager);
     }
 
     private EventDispatcher createDispatcher() {
@@ -88,5 +89,9 @@ public class DolphinMaster extends ChaosService {
 
     private AgentListManage createAgentListManage() {
         return new AgentListManage();
+    }
+
+    public static long getClusterTimeStamp() {
+        return SystemClock.getInstance().getTime();
     }
 }

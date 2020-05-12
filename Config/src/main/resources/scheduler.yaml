@@ -1,0 +1,19 @@
+scheduling:
+  queue:
+    name: root
+    wegiht: 1.0
+    scheduling-policy: drf
+    child:
+      - queue:
+          name: user
+          wegiht: 2.0
+      - queue:
+          name: hk
+          wegiht: 3.0
+          child:
+            - queue:
+                name: sun
+                weight: 2.0
+            - queue
+
+

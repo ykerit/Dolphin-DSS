@@ -69,4 +69,19 @@ public class NodeImp implements Node, EventProcessor<NodeEvent> {
     public NodeState getState() {
         return nodeState;
     }
+
+    @Override
+    public DolphinContext getContext() {
+        return null;
+    }
+
+    @Override
+    public String getNodeName() {
+        return null;
+    }
+
+    @Override
+    public String getRackName() {
+        return null;
+    }
 }

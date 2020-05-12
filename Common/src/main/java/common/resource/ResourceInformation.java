@@ -95,4 +95,13 @@ public class ResourceInformation implements Serializable {
         ri.setTags(tags);
         return ri;
     }
+
+    public static void copy(ResourceInformation src, ResourceInformation dst) {
+        dst.setName(src.getName());
+        dst.setUnits(src.getUnits());
+        dst.setValue(src.getValue());
+        dst.setMinAllocation(src.getMinAllocation());
+        dst.setMaxAllocation(src.getMaxAllocation());
+        dst.setTags(src.getTags());
+    }
 }

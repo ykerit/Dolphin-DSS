@@ -2,7 +2,7 @@ package agent.message;
 
 import agent.status.AgentAction;
 import common.struct.AgentId;
-import message.MessageID;
+import api.MessageID;
 import org.greatfree.message.ServerMessage;
 
 public class RegisterAgentResponse extends ServerMessage {

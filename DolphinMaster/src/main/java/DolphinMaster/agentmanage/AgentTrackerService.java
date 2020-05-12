@@ -1,10 +1,7 @@
 package DolphinMaster.agentmanage;
 
 import DolphinMaster.DolphinContext;
-import DolphinMaster.node.AgentStartedEvent;
-import DolphinMaster.node.Node;
-import DolphinMaster.node.NodeImp;
-import DolphinMaster.node.NodeState;
+import DolphinMaster.node.*;
 import DolphinMaster.security.SecurityManager;
 import DolphinMaster.servertask.AgentTask;
 import agent.message.AgentHeartBeatRequest;
@@ -51,7 +48,7 @@ public class AgentTrackerService extends AbstractService implements AgentTracker
     @Override
     protected void serviceInit() throws Exception {
         try {
-            this.server = new ServerContainer(DefaultServerConfig.NODE_TRACKER_PORT, new AgentTask(this.dolphinContext));
+            this.server = new ServerContainer(DefaultServerConfig.NODE_TRACKER_PORT, new AgentTask(this));
         } catch (IOException e) {
             throw new DolphinRuntimeException("Failed to create server container", e);
         }
@@ -104,7 +101,7 @@ public class AgentTrackerService extends AbstractService implements AgentTracker
         }
         Node node = new NodeImp(agentId, dolphinContext, hostname, capability, physicalResource);
         Node oldNode = this.dolphinContext.getNodes().putIfAbsent(agentId, node);
-        if (oldNode != null) {
+        if (oldNode == null) {
             AgentStartedEvent startedEvent = new AgentStartedEvent(agentId,
                     request.getAppWorkStatuses(),
                     request.getRunningApplications());
@@ -114,7 +111,15 @@ public class AgentTrackerService extends AbstractService implements AgentTracker
             this.livelinessMonitor.removeMonitored(agentId);
             log.info("Reconnect the node is {}", agentId);
             if (request.getRunningApplications().isEmpty() && node.getState() != NodeState.DECOMMISSIONED) {
-
+                switch (node.getState()) {
+                    case RUNNING:
+                        break;
+                    case UNHEALTHY:
+                        break;
+                }
+                this.dolphinContext.getNodes().put(agentId, node);
+                this.dolphinContext.getDolphinDispatcher()
+                        .getEventProcessor().process(new AgentStartedEvent(agentId, null, null));
             } else {
 
             }
@@ -145,28 +150,43 @@ public class AgentTrackerService extends AbstractService implements AgentTracker
             log.info(errMsg);
             response.setAction(AgentAction.SHUTDOWN);
             response.setTips(errMsg);
+            return response;
         }
+
+        AgentStatusEvent statusEvent = new AgentStatusEvent(agentId, status);
+        this.dolphinContext.getDolphinDispatcher().getEventProcessor().process(statusEvent);
 
         Node node = dolphinContext.getNodes().get(agentId);
         if (node == null) {
             String message = "Node not found re syncing" + agentId;
             response.setTips(message);
             response.setAction(AgentAction.RSYNC);
+            return response;
         }
-        
-        if (securityManager.checkExpire(request.getToken())) {
-            return new AgentHeartBeatResponse(AgentAction.NORMAL,
-                    dolphinContext
-                            .getSecurityManager()
-                            .genToken(agentId.toString(), getName()));
-        }
-        this.livelinessMonitor.addMonitored(request.getAgentStatus().getAgentId());
-        return new AgentHeartBeatResponse(AgentAction.NORMAL, null);
+        populate(request, response);
+        return response;
     }
 
-    // last do
     private boolean isValidNode(AgentId id) {
-        return true;
+        return isNodeInDecommissioning(id);
     }
 
+    private boolean isNodeInDecommissioning(AgentId agentId) {
+        Node node = this.dolphinContext.getNodes().get(agentId);
+        if (node != null) {
+            NodeState state = node.getState();
+            if (state == NodeState.DECOMMISSIONED || state == NodeState.RUNNING) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void populate(AgentHeartBeatRequest request, AgentHeartBeatResponse response) {
+        AgentId id = request.getAgentStatus().getAgentId();
+        String nextKey = securityManager.genToken(id.toString(), getName());
+        if (securityManager.checkExpire(request.getToken())) {
+            response.setMasterToken(nextKey);
+        }
+    }
 }

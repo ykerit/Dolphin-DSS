@@ -1,6 +1,6 @@
 package agent.status;
 
-import agent.appworkmanage.appwork.AppWork;
+import common.struct.ApplicationId;
 import common.resource.ResourceUtilization;
 import common.struct.AgentId;
 
@@ -10,13 +10,13 @@ import java.util.List;
 public class AgentStatus implements Serializable {
     private final AgentId agentId;
     private final List<AppWorkStatus> appWorkStatuses;
-    private final List<Long> keepAliveApplications;
+    private final List<ApplicationId> keepAliveApplications;
     private final ResourceUtilization appWorkResourceUtilization;
     private final ResourceUtilization agentResourceUtilization;
 
     public AgentStatus(AgentId agentId,
                        List<AppWorkStatus> appWorkStatuses,
-                       List<Long> keepAliveApplications,
+                       List<ApplicationId> keepAliveApplications,
                        ResourceUtilization appWorkResourceUtilization,
                        ResourceUtilization agentResourceUtilization) {
         this.agentId = agentId;
@@ -30,7 +30,7 @@ public class AgentStatus implements Serializable {
         return agentId;
     }
 
-    public List<Long> getKeepAliveApplications() {
+    public List<ApplicationId> getKeepAliveApplications() {
         return keepAliveApplications;
     }
 

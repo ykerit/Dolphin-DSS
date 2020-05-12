@@ -1,12 +1,15 @@
 package DolphinMaster;
 
 import DolphinMaster.agentmanage.AgentTrackerService;
+import DolphinMaster.app.App;
 import DolphinMaster.node.Node;
 import DolphinMaster.security.SecurityManager;
+import agent.application.Application;
 import common.context.ServiceContext;
 import common.event.EventDispatcher;
 import common.service.ServiceState;
 import common.struct.AgentId;
+import common.struct.ApplicationId;
 import config.Configuration;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -14,17 +17,21 @@ import java.util.concurrent.ConcurrentMap;
 
 public class DolphinContext {
     private ServiceContext serviceContext;
+    private ActiveServiceContext activeServiceContext;
     private DolphinMaster dolphinMaster;
     private AgentTrackerService agentTrackerService;
     private SecurityManager securityManager;
-    private final ConcurrentMap<AgentId, Node> nodes = new ConcurrentHashMap<>();
+
+
 
     public DolphinContext() {
         this.serviceContext = new ServiceContext();
+        this.activeServiceContext = new ActiveServiceContext();
     }
 
     public DolphinContext(EventDispatcher dispatcher, Configuration configuration) {
         this();
+        setConfiguration(configuration);
         this.setDolphinDispatcher(dispatcher);
     }
 
@@ -77,7 +84,11 @@ public class DolphinContext {
     }
 
     public ConcurrentMap<AgentId, Node> getNodes() {
-        return nodes;
+        return activeServiceContext.getNodes();
+    }
+
+    public ConcurrentMap<ApplicationId, App> getApps() {
+        return activeServiceContext.getApplications();
     }
 
 }

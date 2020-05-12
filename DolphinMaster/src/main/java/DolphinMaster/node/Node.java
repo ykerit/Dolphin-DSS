@@ -1,5 +1,6 @@
 package DolphinMaster.node;
 
+import DolphinMaster.DolphinContext;
 import common.resource.Resource;
 import common.struct.AgentId;
 
@@ -17,4 +18,10 @@ public interface Node {
     void rsyncCapability();
 
     NodeState getState();
+
+    DolphinContext getContext();
+
+    String getNodeName();
+
+    String getRackName();
 }

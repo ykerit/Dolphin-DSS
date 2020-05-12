@@ -1,6 +1,7 @@
 package agent.appworkmanage.appwork;
 
-import agent.context.AppWorkLaunchContext;
+import common.struct.ApplicationId;
+import common.context.AppWorkLaunchContext;
 import agent.status.AppWorkStatus;
 import common.event.EventDispatcher;
 import common.resource.Resource;
@@ -22,7 +23,7 @@ public class AppWorkImp implements AppWork {
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     private final EventDispatcher dispatcher;
     private final String appWorkId;
-    private final long appId;
+    private final ApplicationId appId;
     private final String user;
     private final int exitCode;
     private boolean isLaunched;
@@ -35,7 +36,7 @@ public class AppWorkImp implements AppWork {
     private Path workspace;
 
 
-    public AppWorkImp(EventDispatcher dispatcher, AppWorkLaunchContext context, long startTime, String user, long appId) {
+    public AppWorkImp(EventDispatcher dispatcher, AppWorkLaunchContext context, long startTime, String user, ApplicationId appId) {
         this.dispatcher = dispatcher;
         this.launchContext = context;
         this.appWorkId = Tools.GenerateContainerID();
@@ -45,7 +46,7 @@ public class AppWorkImp implements AppWork {
     }
 
     @Override
-    public long getAppId() {
+    public ApplicationId getAppId() {
         return appId;
     }
 

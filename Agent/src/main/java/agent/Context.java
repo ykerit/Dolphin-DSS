@@ -1,6 +1,7 @@
 package agent;
 
 import agent.application.Application;
+import common.struct.ApplicationId;
 import agent.appworkmanage.AppWorkExecutor;
 import agent.appworkmanage.AppWorkManagerImp;
 import agent.appworkmanage.appwork.AppWork;
@@ -10,7 +11,6 @@ import common.struct.AgentId;
 import config.Configuration;
 import org.greatfree.util.IPAddress;
 
-import javax.xml.soap.Node;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -20,7 +20,7 @@ public class Context {
     private AgentManager agentManager;
     private AgentId agentId;
     private AgentStatusReporter agentStatusReporter;
-    private ConcurrentMap<Long, Application> applications = new ConcurrentHashMap<>();
+    private ConcurrentMap<ApplicationId, Application> applications = new ConcurrentHashMap<>();
     private ConcurrentMap<String, AppWork> appWorks = new ConcurrentSkipListMap<>();
     private AppWorkExecutor executor;
     private AgentResourceMonitor monitor;
@@ -35,7 +35,7 @@ public class Context {
         this.executor = executor;
     }
 
-    public ConcurrentMap<Long, Application> getApplications() {
+    public ConcurrentMap<ApplicationId, Application> getApplications() {
         return applications;
     }
 
