@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>state</title>
+    <link rel="stylesheet" type="text/css" href="state.css" />
+    <link rel="stylesheet" type="text/css" href="lib/bootstrap.min.css">
+    <script src="/lib/jquery-3.4.1.min.js"></script>
+    <script src="lib/echarts.min.js"></script>
+    <script src="state.js"></script>
+</head>
+
+<body>
+    <div class="container-fluid" style="margin-top: 1rem;">
+        <div class="row">
+            <div class="col-5">
+                <div class="row">
+                    <div class="card" style="width: 100%;">
+                        <div class="card-header">
+                            运行状态
+                        </div>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item">显示3个运行良好状态</li>
+                            <li class="list-group-item">Dolphin容器使用情况</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="card" style="width: 100%;">
+                        <div class="card-header">
+                            状态摘要
+                        </div>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item">DolphinMaster</li>
+                            <li class="list-group-item">Agent</li>
+                            <li class="list-group-item">节点</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="card" style="width: 100%;">
+                        <div class="card-header">
+                            运行状态历史记录
+                        </div>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item">6:24:32晚上</li>
+                            <li class="list-group-item">6:24:32晚上</li>
+                            <li class="list-group-item">6:24:32晚上</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-7">
+                <div class="row">
+                    <div class="col">
+                        <div id="appwork-size" style="width: 200px; height: 200px;" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <div id="appwork-pending-size" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <div id="appwork-running-size" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

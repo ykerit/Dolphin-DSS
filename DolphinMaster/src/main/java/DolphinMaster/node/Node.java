@@ -1,8 +1,16 @@
 package DolphinMaster.node;
 
 import DolphinMaster.DolphinContext;
+import agent.application.Application;
+import agent.appworkmanage.appwork.AppWork;
+import agent.message.AgentHeartBeatResponse;
 import common.resource.Resource;
+import common.resource.ResourceUtilization;
 import common.struct.AgentId;
+import common.struct.ApplicationId;
+
+import java.util.Collection;
+import java.util.List;
 
 public interface Node {
     AgentId getNodeId();
@@ -21,7 +29,22 @@ public interface Node {
 
     DolphinContext getContext();
 
-    String getNodeName();
+    int getCommandPort();
 
     String getRackName();
+
+    ResourceUtilization getAppWorksUtilization();
+
+    ResourceUtilization getNodeUtilization();
+
+    List<ApplicationId> getAppsToCleanup();
+
+    List<ApplicationId> getRunningApps();
+
+    List<String> getAppWorkToCleanup();
+
+    void setAndUpdateAgentHeartbeatResponse(AgentHeartBeatResponse response);
+
+    Collection<AppWork> getToBeUpdateAppWorks();
+
 }
