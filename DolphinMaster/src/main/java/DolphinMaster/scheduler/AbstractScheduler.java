@@ -2,14 +2,15 @@ package DolphinMaster.scheduler;
 
 import DolphinMaster.ClusterNodeTracker;
 import DolphinMaster.DolphinContext;
-import common.struct.ApplicationId;
-import agent.appworkmanage.appwork.AppWork;
+import DolphinMaster.node.Node;
+import DolphinMaster.node.NodeCleanAppWorkEvent;
+import DolphinMaster.schedulerunit.SchedulerUnit;
+import DolphinMaster.schedulerunit.SchedulerUnitState;
 import common.exception.DolphinException;
 import common.resource.Resource;
 import common.resource.Resources;
 import common.service.AbstractService;
-import common.struct.AgentId;
-import common.struct.Priority;
+import common.struct.*;
 import common.util.SystemClock;
 import config.Configuration;
 import org.apache.logging.log4j.LogManager;
@@ -27,31 +28,24 @@ public abstract class AbstractScheduler extends AbstractService implements Resou
     private static final Logger log = LogManager.getLogger(AbstractScheduler.class);
 
     private static final Resource ZERO_RESOURCE = Resource.newInstance(0, 0);
-
-    protected final ClusterNodeTracker nodeTracker = new ClusterNodeTracker();
-    protected Resource minimumAllocation;
-    protected volatile DolphinContext context;
-    private volatile Priority maxClusterLevelAppPriority;
-
-    protected volatile long lastNodeUpdateTime;
-
-    protected final long THRAD_JOIN_TIMEOUT = 1000;
-
-    private volatile SystemClock clock;
-
-    protected long updateInterval = -1L;
-    Thread updateThread;
-    private final Object updateThreadMonitor = new Object();
-    private Timer releaseCache;
-
-    protected ConcurrentMap<ApplicationId, SchedulerApplication> applications;
-    protected int nmExpireInterval;
-
-    private final static List<AppWork> EMPTY_APP_WORK_LIST = new ArrayList<>();
+    private final static List<RemoteAppWork> EMPTY_APP_WORK_LIST = new ArrayList<>();
     protected static final Allocation EMPTY_ALLOCATION =
             new Allocation(EMPTY_APP_WORK_LIST, Resources.createResource(0), null, null);
+    protected final ClusterNodeTracker nodeTracker = new ClusterNodeTracker();
+    protected final long THRAD_JOIN_TIMEOUT = 1000;
     protected final ReentrantReadWriteLock.ReadLock readLock;
+    private final Object updateThreadMonitor = new Object();
     private final ReentrantReadWriteLock.WriteLock writeLock;
+    protected Resource minimumAllocation;
+    protected volatile DolphinContext context;
+    protected volatile long lastNodeUpdateTime;
+    protected long updateInterval = -1L;
+    protected ConcurrentMap<ApplicationId, SchedulerApplication> applications;
+    protected int nmExpireInterval;
+    Thread updateThread;
+    private volatile Priority maxClusterLevelAppPriority;
+    private volatile SystemClock clock;
+    private Timer releaseCache;
     private boolean autoUpdateAppWorks = false;
 
 
@@ -65,17 +59,33 @@ public abstract class AbstractScheduler extends AbstractService implements Resou
 
     @Override
     protected void serviceInit() throws Exception {
+        if (updateInterval > 0) {
+            updateThread = new UpdateThread();
+            updateThread.setName("SchedulerUpdateThread");
+            updateThread.setDaemon(true);
+        }
         super.serviceInit();
     }
 
     @Override
     protected void serviceStart() throws Exception {
+        if (this.updateThread != null) {
+            this.updateThread.start();
+        }
         super.serviceStart();
     }
 
     @Override
     protected void serviceStop() throws Exception {
+        if (updateThread != null) {
+            updateThread.interrupt();
+            updateThread.join(1000L);
+        }
         super.serviceStop();
+    }
+
+    public ClusterNodeTracker getNodeTracker() {
+        return nodeTracker;
     }
 
     @Override
@@ -109,7 +119,7 @@ public abstract class AbstractScheduler extends AbstractService implements Resou
     }
 
     @Override
-    public SchedulerAppReport getSchedulerAppInfo(AppDescribeId appDescribeId) {
+    public SchedulerAppReport getSchedulerAppInfo(ApplicationId applicationId) {
         return null;
     }
 
@@ -148,7 +158,81 @@ public abstract class AbstractScheduler extends AbstractService implements Resou
         return null;
     }
 
-    SchedulerApplication getApplicationDescribe(AppDescribeId appDescribeId) {
-        return null;
+    @Override
+    public SchedulerUnit getSchedulerUnit(AppWorkId id) {
+        SchedulerApplication application = getCurrentAppForAppWork(id);
+        return application == null ? null : application.getSchedulerUnit(id);
+    }
+
+    @Override
+    public SchedulerNodeReport getNodeReport(AgentId id) {
+        return nodeTracker.getNodeReport(id);
+    }
+
+    private void killOrphanAppWorkOnNode(Node node, SchedulerUnitState schedulerUnit) {
+        if (!schedulerUnit.equals(RemoteAppWorkState.COMPLETE)) {
+            this.context.getDolphinDispatcher().getEventProcessor()
+                    .process(new NodeCleanAppWorkEvent(node.getNodeId(), schedulerUnit));
+        }
+    }
+
+    protected void appWorkLaunchedOnNode(AppWorkId appWorkId, SchedulerNode node) {
+        readLock.lock();
+        try {
+            SchedulerApplication application = getCurrentAppForAppWork(appWorkId);
+            if (application == null) {
+                log.info("Unknown application " + appWorkId.getApplicationId() +
+                        "launched AppWork " + appWorkId);
+                this.context.getDolphinDispatcher().
+                        getEventProcessor().process(new NodeCleanAppWorkEvent(node.getNodeId(), appWorkId));
+                return;
+            }
+            application.appWorkLaunchOnNode(appWorkId, node.getNodeId());
+            node.appWorkStarted(appWorkId);
+        } finally {
+            readLock.unlock();
+        }
+    }
+
+    protected void AppWorkIncreaseOnNode(AppWorkId appWorkId, SchedulerNode node, RemoteAppWork increasedAppWorkReport) {
+        SchedulerApplication application = getCurrentAppForAppWork(appWorkId);
+        if (application == null) {
+            log.info("Unknown application " + appWorkId.getApplicationId() +
+                    " increased AppWork: " + appWorkId + " on node:" + node);
+            this.context.getDolphinDispatcher().getEventProcessor()
+                    .process(new NodeCleanAppWorkEvent(node.getNodeId(), appWorkId));
+            return;
+        }
+        SchedulerUnit schedulerUnit = getSchedulerUnit(appWorkId);
+
+    }
+
+
+    public SchedulerApplication getCurrentAppForAppWork(AppWorkId appWorkId) {
+        return getApplication(appWorkId.getApplicationId());
+    }
+
+    public SchedulerApplication getApplication(ApplicationId applicationId) {
+        return applications.get(applicationId);
+    }
+
+    protected void update() {
+    }
+
+    private class UpdateThread extends Thread {
+        @Override
+        public void run() {
+            while (!Thread.currentThread().isInterrupted()) {
+                try {
+                    synchronized (updateThreadMonitor) {
+                        updateThreadMonitor.wait(updateInterval);
+                        update();
+                    }
+                } catch (InterruptedException e) {
+                    log.warn("Scheduler updateThread interrupted, Exiting");
+                    return;
+                }
+            }
+        }
     }
 }

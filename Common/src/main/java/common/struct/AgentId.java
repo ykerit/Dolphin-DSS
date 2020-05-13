@@ -7,6 +7,7 @@ public class AgentId implements Serializable, Comparable<AgentId> {
     private long agentKey;
     private String localIP;
     private String hostname;
+    private int commandPort;
 
     public AgentId(String localIP) {
         this.localIP = localIP;
@@ -26,6 +27,14 @@ public class AgentId implements Serializable, Comparable<AgentId> {
 
     public String getHostname() {
         return hostname;
+    }
+
+    public int getCommandPort() {
+        return commandPort;
+    }
+
+    public void setCommandPort(int commandPort) {
+        this.commandPort = commandPort;
     }
 
     public void setHostname(String hostname) {

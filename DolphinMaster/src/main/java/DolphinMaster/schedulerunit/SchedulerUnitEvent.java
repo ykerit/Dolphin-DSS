@@ -1,15 +1,16 @@
 package DolphinMaster.schedulerunit;
 
 import common.event.AbstractEvent;
+import common.struct.AppWorkId;
 
 public class SchedulerUnitEvent extends AbstractEvent<SchedulerUnitEventType> {
-    private final String appWorkId;
-    public SchedulerUnitEvent(String appWorkId, SchedulerUnitEventType schedulerUnitEventType) {
+    private final AppWorkId appWorkId;
+    public SchedulerUnitEvent(AppWorkId appWorkId, SchedulerUnitEventType schedulerUnitEventType) {
         super(schedulerUnitEventType);
         this.appWorkId = appWorkId;
     }
 
-    public String getAppWorkId() {
+    public AppWorkId getAppWorkId () {
         return appWorkId;
     }
 }

@@ -1,15 +1,16 @@
 package agent.appworkmanage;
 
 import common.resource.Resource;
+import common.struct.AppWorkId;
 
 import java.io.IOException;
 
 public interface ResourceProcessor {
     void init(AppWorkExecutorImp executor) throws IOException;
 
-    void preExecute(String appWorkId, Resource appWorkResource) throws IOException;
+    void preExecute(AppWorkId appWorkId, Resource appWorkResource) throws IOException;
 
-    void postExecute(String appWorkId);
+    void postExecute(AppWorkId appWorkId);
 
-    String getResourceOption(String appWorkId);
+    String getResourceOption(AppWorkId appWorkId);
 }

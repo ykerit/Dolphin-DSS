@@ -1,23 +1,20 @@
 package DolphinMaster.schedulerunit;
 
-import DolphinMaster.scheduler.AppDescribeId;
-import common.struct.Priority;
-import agent.appworkmanage.appwork.AppWork;
 import common.event.EventProcessor;
 import common.resource.Resource;
-import common.struct.AgentId;
+import common.struct.*;
 
 import java.util.Set;
 
 // Each scheduler unit maps an AppWork
 public interface SchedulerUnit extends EventProcessor<SchedulerUnitEvent>, Comparable<SchedulerUnit> {
-    String getAppWorkId();
+    AppWorkId getAppWorkId();
 
-    void setAppWorkId(String appWorkId);
+    void setAppWorkId(AppWorkId appWorkId);
 
     SchedulerUnitState getState();
 
-    AppWork getAppWork();
+    RemoteAppWork getAppWork();
 
     Resource getReservedResource();
 
@@ -51,5 +48,5 @@ public interface SchedulerUnit extends EventProcessor<SchedulerUnitEvent>, Compa
 
     Set<String> getAllocationTags();
 
-    AppDescribeId getApplicationDescribeId();
+    ApplicationId getApplicationId();
 }

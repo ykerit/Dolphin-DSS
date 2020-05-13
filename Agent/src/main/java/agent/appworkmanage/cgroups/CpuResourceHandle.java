@@ -6,6 +6,7 @@ import common.Privileged.PrivilegedOperation;
 import common.exception.ResourceHandleException;
 import common.resource.Resource;
 import common.resource.ResourceCollector;
+import common.struct.AppWorkId;
 import common.util.HardwareUtils;
 import config.Configuration;
 import org.apache.commons.io.FileUtils;
@@ -108,7 +109,7 @@ public class CpuResourceHandle implements ResourceHandler {
 
     @Override
     public List<PrivilegedOperation> preStart(AppWork appWork) throws ResourceHandleException {
-        String cgroupId = appWork.getAppWorkId();
+        String cgroupId = Long.toString(appWork.getAppWorkId().getAppWorkId());
         cGroupsHandler.createCGroup(CPU, cgroupId);
         updateAppWork(appWork);
         List<PrivilegedOperation> ret = new ArrayList<>();
@@ -119,14 +120,14 @@ public class CpuResourceHandle implements ResourceHandler {
     }
 
     @Override
-    public List<PrivilegedOperation> reacquireAppWork(String appWorkId) throws ResourceHandleException {
+    public List<PrivilegedOperation> reacquireAppWork(AppWorkId appWorkId) throws ResourceHandleException {
         return null;
     }
 
     @Override
     public List<PrivilegedOperation> updateAppWork(AppWork appWork) throws ResourceHandleException {
         Resource appWorkResource = appWork.getResource();
-        String cgroupId = appWork.getAppWorkId();
+        String cgroupId = Long.toString(appWork.getAppWorkId().getAppWorkId());
         File cgroup = new File(cGroupsHandler.getPathForCGroup(CPU, cgroupId));
         if (cgroup.exists()) {
             int appWorkVCores = appWorkResource.getVCore();
@@ -142,8 +143,8 @@ public class CpuResourceHandle implements ResourceHandler {
     }
 
     @Override
-    public List<PrivilegedOperation> postComplete(String appWorKId) throws ResourceHandleException {
-        cGroupsHandler.deleteCGroup(CPU, appWorKId);
+    public List<PrivilegedOperation> postComplete(AppWorkId appWorKId) throws ResourceHandleException {
+        cGroupsHandler.deleteCGroup(CPU, Long.toString(appWorKId.getAppWorkId()));
         return null;
     }
 

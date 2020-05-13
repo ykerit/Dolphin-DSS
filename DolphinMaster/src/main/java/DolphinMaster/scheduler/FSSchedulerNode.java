@@ -1,12 +1,14 @@
 package DolphinMaster.scheduler;
 
 
+import DolphinMaster.app.App;
 import DolphinMaster.node.Node;
 import DolphinMaster.schedulerunit.SchedulerUnit;
-import agent.appworkmanage.appwork.AppWork;
 import com.google.common.collect.Lists;
 import common.resource.Resource;
 import common.resource.Resources;
+import common.struct.AppWorkId;
+import common.struct.ApplicationId;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -18,12 +20,12 @@ public class FSSchedulerNode extends SchedulerNode{
             LogManager.getLogger(FSSchedulerNode.class);
 
     final Set<SchedulerUnit> schedulerUnitsForPreemption = new ConcurrentSkipListSet<>();
-    final Map<AppDescribe, Resource> resourcePreemptedForApp = new LinkedHashMap<>();
-    private final Map<AppDescribeId, AppDescribe> appIdToAppMap = new HashMap<>();
+    final Map<App, Resource> resourcePreemptedForApp = new LinkedHashMap<>();
+    private final Map<ApplicationId, App> appIdToAppMap = new HashMap<>();
 
     private Resource totalResourcesPreempted = Resource.newInstance(0, 0);
 
-    private AppDescribe reservedAppSchedulable;
+    private App reservedAppSchedulable;
 
     public FSSchedulerNode(Node node) {
         super(node);
@@ -38,7 +40,7 @@ public class FSSchedulerNode extends SchedulerNode{
     }
 
     @Override
-    public synchronized void reserveResource(AppDescribe application, SchedulerUnit unit) {
+    public synchronized void reserveResource(App application, SchedulerUnit unit) {
         SchedulerUnit reserveSchedulerUnit = getReservedSchedulerUnit();
         if (reserveSchedulerUnit != null) {
             if (!unit.getAppWork().getAgentId().equals(getNodeId())) {
@@ -65,26 +67,26 @@ public class FSSchedulerNode extends SchedulerNode{
     }
 
     @Override
-    public synchronized void unreserveResource(AppDescribe attempt) {
+    public synchronized void unreserveResource(App app) {
 
     }
 
-    public AppDescribe getReservedAppSchedulable() {
+    public App getReservedAppSchedulable() {
         return reservedAppSchedulable;
     }
 
-    synchronized LinkedHashMap<AppDescribe, Resource> getPreemptionList() {
+    synchronized LinkedHashMap<App, Resource> getPreemptionList() {
         cleanupPreemptionList();
         return new LinkedHashMap<>(resourcePreemptedForApp);
     }
 
     void cleanupPreemptionList() {
-        LinkedList<AppDescribe> waitForClean;
+        LinkedList<App> waitForClean;
         synchronized (this) {
             waitForClean = Lists.newLinkedList(this.resourcePreemptedForApp.keySet());
         }
 
-        for (AppDescribe app : waitForClean) {
+        for (App app : waitForClean) {
             // ...
             if (true) {
                 synchronized (this) {
@@ -98,7 +100,7 @@ public class FSSchedulerNode extends SchedulerNode{
         }
     }
 
-    void addSchedulerUnitForPreemption(Collection<SchedulerUnit> schedulerUnits, AppDescribe app) {
+    void addSchedulerUnitForPreemption(Collection<SchedulerUnit> schedulerUnits, App app) {
         Resource appReserved = Resources.createResource(0);
         for (SchedulerUnit unit : schedulerUnits) {
             if (schedulerUnitsForPreemption.add(unit)) {
@@ -109,7 +111,7 @@ public class FSSchedulerNode extends SchedulerNode{
         synchronized (this) {
             if (!Resources.isNone(appReserved)) {
                 Resources.addTo(totalResourcesPreempted, appReserved);
-                appIdToAppMap.putIfAbsent(app.getApplicationDescribeId(), app);
+                appIdToAppMap.putIfAbsent(app.getApplicationId(), app);
                 resourcePreemptedForApp.putIfAbsent(app, Resource.newInstance(0, 0));
                 Resources.addTo(resourcePreemptedForApp.get(app), appReserved);
             }
@@ -124,8 +126,8 @@ public class FSSchedulerNode extends SchedulerNode{
     protected synchronized void allocateSchedulerUnit(SchedulerUnit unit, boolean launchedOnNode) {
         super.allocateSchedulerUnit(unit, launchedOnNode);
         if (log.isDebugEnabled()) {
-            final AppWork appWork = unit.getAppWork();
-            log.debug("Assigned container " + appWork.getAppWorkId() + " of capacity "
+            final RemoteAppWork appWork = unit.getAppWork();
+            log.debug("Assigned container " + appWork. + " of capacity "
                     + appWork.getResource() + " on host " + getNode().getNodeAddress()
                     + ", which has " + getNumAppWorks() + " containers, "
                     + getAllocatedResource() + " used and " + getUnAllocatedResource()
@@ -135,7 +137,7 @@ public class FSSchedulerNode extends SchedulerNode{
         Resource allocated = unit.getAllocatedResource();
         if (!Resources.isNone(allocated)) {
             // check for satisfied preemption request and update bookkeeping
-            AppDescribe app =
+            App app =
                     appIdToAppMap.get(unit.getApplicationDescribeId());
             if (app != null) {
                 Resource reserved = resourcePreemptedForApp.get(app);
@@ -149,13 +151,13 @@ public class FSSchedulerNode extends SchedulerNode{
                 }
             }
         } else {
-            log.error("Allocated empty container" + unit.getAppWorkId());
+            log.error("Allocated empty container" + unit.);
         }
     }
 
     @Override
-    public synchronized void releaseSchedulerUnit(String appWorkId,
-                                              boolean releasedByNode) {
+    public synchronized void releaseSchedulerUnit(AppWorkId appWorkId,
+                                                  boolean releasedByNode) {
         SchedulerUnit schedulerUnit = getSchedulerUnit(appWorkId);
         super.releaseSchedulerUnit(appWorkId, releasedByNode);
         if (schedulerUnit != null) {

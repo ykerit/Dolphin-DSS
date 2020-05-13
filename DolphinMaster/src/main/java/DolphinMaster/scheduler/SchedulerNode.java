@@ -1,13 +1,15 @@
 package DolphinMaster.scheduler;
 
 import DolphinMaster.DolphinContext;
+import DolphinMaster.app.App;
 import DolphinMaster.node.Node;
 import DolphinMaster.schedulerunit.SchedulerUnit;
-import agent.appworkmanage.appwork.AppWork;
 import common.resource.Resource;
 import common.resource.ResourceUtilization;
 import common.resource.Resources;
 import common.struct.AgentId;
+import common.struct.AppWorkId;
+import common.struct.RemoteAppWork;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -26,7 +28,7 @@ public abstract class SchedulerNode {
     private volatile ResourceUtilization nodeUtilization = ResourceUtilization.newInstance(0, 0);
     private long overcommitTimeout = -1;
 
-    private final Map<String, SchedulerUnitInfo> launchedAppWorks = new HashMap<>();
+    private final Map<AppWorkId, SchedulerUnitInfo> launchedAppWorks = new HashMap<>();
 
     private final Node node;
     private final String nodeName;
@@ -37,7 +39,7 @@ public abstract class SchedulerNode {
         this.context = node.getContext();
         this.unAllocatedResource = Resources.clone(node.getTotalCapability());
         this.totalResource = Resources.clone(node.getTotalCapability());
-        nodeName = node.getNodeName();
+        nodeName = node.getNodeId().toString();
     }
 
     public Node getNode() {
@@ -66,7 +68,7 @@ public abstract class SchedulerNode {
     }
 
     public String getNodeName() {
-        return node.getNodeName();
+        return nodeName;
     }
 
     public String getRackName() {
@@ -79,7 +81,7 @@ public abstract class SchedulerNode {
 
     protected synchronized void allocateSchedulerUnit(SchedulerUnit unit, boolean launchedOnNode) {
         numAppWorks++;
-        AppWork appWork = unit.getAppWork();
+        RemoteAppWork appWork = unit.getAppWork();
         launchedAppWorks.put(appWork.getAppWorkId(), new SchedulerUnitInfo(unit, launchedOnNode));
     }
 
@@ -95,7 +97,7 @@ public abstract class SchedulerNode {
         return this.totalResource;
     }
 
-    public synchronized boolean isValidAppWork(String appWorkId) {
+    public synchronized boolean isValidAppWork(AppWorkId appWorkId) {
         if (launchedAppWorks.containsKey(appWorkId)) {
             return true;
         }
@@ -103,12 +105,12 @@ public abstract class SchedulerNode {
     }
 
     protected synchronized void updateResourceForReleasedContainer(
-            AppWork appWork) {
+            RemoteAppWork appWork) {
         addUnallocatedResource(appWork.getResource());
         --numAppWorks;
     }
 
-    public synchronized void releaseSchedulerUnit(String appWorkId,
+    public synchronized void releaseSchedulerUnit(AppWorkId appWorkId,
                                               boolean releasedByNode) {
         SchedulerUnitInfo info = launchedAppWorks.get(appWorkId);
         if (info == null) {
@@ -120,14 +122,7 @@ public abstract class SchedulerNode {
         }
 
         launchedAppWorks.remove(appWorkId);
-        AppWork appWork = info.schedulerUnit.getAppWork();
-
-        // We remove allocation tags when a container is actually
-        // released on NM. This is to avoid running into situation
-        // when AM releases a container and NM has some delay to
-        // actually release it, then the tag can still be visible
-        // at RM so that RM can respect it during scheduling new containers.
-
+        RemoteAppWork appWork = info.schedulerUnit.getAppWork();
         updateResourceForReleasedContainer(appWork);
 
         if (log.isDebugEnabled()) {
@@ -139,7 +134,7 @@ public abstract class SchedulerNode {
         }
     }
 
-    public synchronized void appWorkStarted(String appWorkId) {
+    public synchronized void appWorkStarted(AppWorkId appWorkId) {
         SchedulerUnitInfo info = launchedAppWorks.get(appWorkId);
         if (info != null) {
             info.launchedOnNode = true;
@@ -167,10 +162,10 @@ public abstract class SchedulerNode {
         Resources.addTo(allocatedResource, resource);
     }
 
-    public abstract void reserveResource(AppDescribe attempt, SchedulerUnit unit);
+    public abstract void reserveResource(App app, SchedulerUnit unit);
 
 
-    public abstract void unreserveResource(AppDescribe attempt);
+    public abstract void unreserveResource(App attempt);
 
     @Override
     public String toString() {
@@ -216,7 +211,7 @@ public abstract class SchedulerNode {
         return result;
     }
 
-    protected synchronized SchedulerUnit getSchedulerUnit(String appWorkId) {
+    protected synchronized SchedulerUnit getSchedulerUnit(AppWorkId appWorkId) {
         SchedulerUnit schedulerUnit = null;
         SchedulerUnitInfo info = launchedAppWorks.get(appWorkId);
         if (info != null) {

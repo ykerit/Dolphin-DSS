@@ -2,6 +2,7 @@ package DolphinMaster.scheduler;
 
 import DolphinMaster.DolphinContext;
 import DolphinMaster.schedulerunit.SchedulerUnit;
+import common.struct.AppWorkId;
 import common.struct.ApplicationId;
 import common.exception.DolphinException;
 import common.resource.Resource;
@@ -32,15 +33,15 @@ public interface ResourceScheduler {
 
     int getNumClusterNodes();
 
-    Allocation allocate(AppDescribeId appDescribeId);
+    Allocation allocate(ApplicationId appDescribeId);
 
     SchedulerNodeReport getNodeReport(AgentId id);
 
-    SchedulerAppReport getSchedulerAppInfo(AppDescribeId appDescribeId);
+    SchedulerAppReport getSchedulerAppInfo(ApplicationId appDescribeId);
 
-    List<AppDescribeId> getAppsInPool(String pool);
+    List<ApplicationId> getAppsInPool(String pool);
 
-    SchedulerUnit getSchedulerUnit(String id);
+    SchedulerUnit getSchedulerUnit(AppWorkId id);
 
     String moveApplication(ApplicationId appId, String newPool) throws DolphinException;
 

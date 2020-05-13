@@ -2,7 +2,6 @@ package DolphinMaster.node;
 
 
 import DolphinMaster.DolphinContext;
-import agent.appworkmanage.appwork.AppWork;
 import agent.message.AgentHeartBeatResponse;
 import agent.status.AppWorkStatus;
 import common.event.EventProcessor;
@@ -10,6 +9,7 @@ import common.resource.Resource;
 import common.resource.ResourceUtilization;
 import common.struct.AgentId;
 import common.struct.ApplicationId;
+import common.struct.RemoteAppWork;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -18,6 +18,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+;
 
 public class NodeImp implements Node, EventProcessor<NodeEvent> {
 
@@ -32,31 +34,26 @@ public class NodeImp implements Node, EventProcessor<NodeEvent> {
     private final DolphinContext context;
     private final String hostName;
     private final String nodeAddress;
-    // use for AM
-    private int commandPort;
-
-    // snapshot for total resource
-    private volatile Resource originalTotalCapability;
-    private volatile Resource totalCapability;
-
-    private long timeStamp;
-    private NodeState nodeState;
-
-    private ResourceUtilization appWorksUtilization;
-    private ResourceUtilization nodeUtilization;
-    private volatile Resource physicalResource;
-
     private final Set<String> launchedAppWorks = new HashSet<>();
     private final Set<String> completedAppWorks = new HashSet<>();
     private final Set<String> appWorksToClean = new TreeSet<>();
     private final Set<String> appWorksToBeRemovedFromAgent = new HashSet<>();
     private final List<ApplicationId> finishedApplications = new ArrayList<>();
     private final List<ApplicationId> runningApplication = new ArrayList<>();
-    private final Map<String, AppWork> toBeUpdateAppWorks = new HashMap<>();
-
+    private final Map<String, RemoteAppWork> toBeUpdateAppWorks = new HashMap<>();
     private final Map<String, AppWorkStatus> updateExistAppWorks = new HashMap<>();
-    private final Map<String, AppWork> toBeDecreasedAppWorks = new HashMap<>();
-    private final Map<String, AppWork> reportedIncreasedAppWorks = new HashMap<>();
+    private final Map<String, RemoteAppWork> toBeDecreasedAppWorks = new HashMap<>();
+    private final Map<String, RemoteAppWork> reportedIncreasedAppWorks = new HashMap<>();
+    // use for AM
+    private int commandPort;
+    // snapshot for total resource
+    private volatile Resource originalTotalCapability;
+    private volatile Resource totalCapability;
+    private long timeStamp;
+    private NodeState nodeState;
+    private ResourceUtilization appWorksUtilization;
+    private ResourceUtilization nodeUtilization;
+    private volatile Resource physicalResource;
 
 
     public NodeImp(AgentId id, DolphinContext context,
@@ -180,14 +177,23 @@ public class NodeImp implements Node, EventProcessor<NodeEvent> {
     public void setAndUpdateAgentHeartbeatResponse(AgentHeartBeatResponse response) {
         writeLock.lock();
         try {
+            response.setAppWorksToCleanup(new ArrayList<>(this.appWorksToClean));
+            response.setApplicationsToCleanup(this.finishedApplications);
+            response.setAppWorksToBeRemoved(new ArrayList<>(this.appWorksToBeRemovedFromAgent));
+            this.completedAppWorks.removeAll(this.appWorksToBeRemovedFromAgent);
+            this.appWorksToClean.clear();
+            this.finishedApplications.clear();
+            this.appWorksToBeRemovedFromAgent.clear();
 
+            response.setAppWorksToUpdate(this.toBeUpdateAppWorks.values());
+            this.toBeDecreasedAppWorks.clear();
         } finally {
             writeLock.unlock();
         }
     }
 
     @Override
-    public Collection<AppWork> getToBeUpdateAppWorks() {
+    public Collection<RemoteAppWork> getToBeUpdateAppWorks() {
         readLock.lock();
         try {
             return toBeUpdateAppWorks.values();

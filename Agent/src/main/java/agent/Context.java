@@ -1,6 +1,7 @@
 package agent;
 
 import agent.application.Application;
+import common.struct.AppWorkId;
 import common.struct.ApplicationId;
 import agent.appworkmanage.AppWorkExecutor;
 import agent.appworkmanage.AppWorkManagerImp;
@@ -21,7 +22,7 @@ public class Context {
     private AgentId agentId;
     private AgentStatusReporter agentStatusReporter;
     private ConcurrentMap<ApplicationId, Application> applications = new ConcurrentHashMap<>();
-    private ConcurrentMap<String, AppWork> appWorks = new ConcurrentSkipListMap<>();
+    private ConcurrentMap<AppWorkId, AppWork> appWorks = new ConcurrentSkipListMap<>();
     private AppWorkExecutor executor;
     private AgentResourceMonitor monitor;
     private AppWorkManagerImp appWorkManager;
@@ -39,7 +40,7 @@ public class Context {
         return applications;
     }
 
-    public ConcurrentMap<String, AppWork> getAppWorks() {
+    public ConcurrentMap<AppWorkId, AppWork> getAppWorks() {
         return appWorks;
     }
 

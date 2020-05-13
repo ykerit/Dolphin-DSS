@@ -13,6 +13,7 @@ import agent.appworkmanage.scheduler.AppWorkSchedulerEventType;
 import common.event.EventDispatcher;
 import common.event.EventProcessor;
 import common.service.ChaosService;
+import common.struct.AppWorkId;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -99,7 +100,7 @@ public class AppWorkManagerImp extends ChaosService implements AppWorkManager {
 
         @Override
         public void process(AppWorkEvent event) {
-            ConcurrentMap<String, AppWork> appWorks = AppWorkManagerImp.this.context.getAppWorks();
+            ConcurrentMap<AppWorkId, AppWork> appWorks = AppWorkManagerImp.this.context.getAppWorks();
             AppWork work = appWorks.get(event.getAppWorkId());
             if (work != null) {
                 work.process(event);

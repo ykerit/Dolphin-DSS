@@ -1,6 +1,7 @@
 package agent.appworkmanage;
 
 import common.resource.Resource;
+import common.struct.AppWorkId;
 
 import java.io.IOException;
 
@@ -12,17 +13,17 @@ public class ResourceProcessorImp implements ResourceProcessor {
     }
 
     @Override
-    public void preExecute(String appWorkId, Resource appWorkResource) throws IOException {
+    public void preExecute(AppWorkId appWorkId, Resource appWorkResource) throws IOException {
 
     }
 
     @Override
-    public void postExecute(String appWorkId) {
+    public void postExecute(AppWorkId appWorkId) {
 
     }
 
     @Override
-    public String getResourceOption(String appWorkId) {
+    public String getResourceOption(AppWorkId appWorkId) {
         return null;
     }
 }

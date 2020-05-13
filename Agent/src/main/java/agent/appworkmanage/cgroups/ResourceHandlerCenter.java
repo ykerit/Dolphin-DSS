@@ -3,6 +3,7 @@ package agent.appworkmanage.cgroups;
 import agent.appworkmanage.appwork.AppWork;
 import common.Privileged.PrivilegedOperation;
 import common.exception.ResourceHandleException;
+import common.struct.AppWorkId;
 import config.Configuration;
 
 import java.util.ArrayList;
@@ -42,7 +43,7 @@ public class ResourceHandlerCenter implements ResourceHandler {
     }
 
     @Override
-    public List<PrivilegedOperation> reacquireAppWork(String appWorkId) throws ResourceHandleException {
+    public List<PrivilegedOperation> reacquireAppWork(AppWorkId appWorkId) throws ResourceHandleException {
         List<PrivilegedOperation> allOperations = new
                 ArrayList<PrivilegedOperation>();
 
@@ -76,7 +77,7 @@ public class ResourceHandlerCenter implements ResourceHandler {
     }
 
     @Override
-    public List<PrivilegedOperation> postComplete(String appWorKId) throws ResourceHandleException {
+    public List<PrivilegedOperation> postComplete(AppWorkId appWorKId) throws ResourceHandleException {
         List<PrivilegedOperation> allOperations = new
                 ArrayList<PrivilegedOperation>();
 

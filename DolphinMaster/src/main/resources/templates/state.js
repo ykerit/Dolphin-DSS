@@ -1,39 +1,46 @@
 $(function () {
-    var appwork = echarts.init(document.getElementById('appwork-size'));
-
-    function randomData() {
-        now = new Date(+now + oneDay);
-        value = value + Math.random() * 21 - 10;
-        return {
-            name: now.toString(),
-            value: [
-                [now.getFullYear(), now.getMonth() + 1, now.getDate()].join('/'),
-                Math.round(value)
-            ]
-        };
-    }
-
-    var data = [];
-    var now = +new Date(1997, 9, 3);
-    var oneDay = 24 * 3600 * 1000;
-    var value = Math.random() * 1000;
-    for (var i = 0; i < 1000; i++) {
-        data.push(randomData());
-    }
-
-    option = {
-        xAxis: {
-            type: 'category',
-            data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+    var option = {
+        title: {
+            text: '2010 ~ 2016 年太阳能行业就业人员发展情况'
         },
         yAxis: {
-            type: 'value'
+            title: {
+                text: '就业人数'
+            }
+        },
+        legend: {
+            layout: 'vertical',
+            align: 'right',
+            verticalAlign: 'middle'
+        },
+        plotOptions: {
+            series: {
+                label: {
+                    connectorAllowed: false
+                },
+                pointStart: 2010
+            }
         },
         series: [{
-            data: [820, 932, 901, 934, 1290, 1330, 1320],
-            type: 'line'
-        }]
+            name: '安装，实施人员',
+            data: [43934, 52503, 57177, 69658, 97031, 119931, 137133, 154175]
+        }],
+        responsive: {
+            rules: [{
+                condition: {
+                    maxWidth: 500
+                },
+                chartOptions: {
+                    legend: {
+                        layout: 'horizontal',
+                        align: 'center',
+                        verticalAlign: 'bottom'
+                    }
+                }
+            }]
+        }
     };
-
-    appwork.setOption(option);
+    var chart1 = Highcharts.chart('appwork-size', option);
+    var chart2 = Highcharts.chart('appwork-pending-size', option);
+    var chart3 = Highcharts.chart('appwork-running-size', option);
 });

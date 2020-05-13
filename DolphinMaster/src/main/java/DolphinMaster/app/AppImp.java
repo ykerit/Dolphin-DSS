@@ -224,6 +224,11 @@ public class AppImp implements App {
     }
 
     @Override
+    public Map<String, String> getApplicationEnvs() {
+        return applicationEnv;
+    }
+
+    @Override
     public void process(AppEvent event) {
         writeLock.lock();
         try {

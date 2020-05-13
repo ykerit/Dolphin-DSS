@@ -1,13 +1,12 @@
 package DolphinMaster.app;
 
-import DolphinMaster.scheduler.AppDescribe;
-import DolphinMaster.scheduler.AppDescribeId;
 import common.context.ApplicationSubmission;
 import common.event.EventProcessor;
 import common.struct.AgentId;
 import common.struct.ApplicationId;
 import common.struct.Priority;
 
+import java.util.Map;
 import java.util.Set;
 
 public interface App extends EventProcessor<AppEvent> {
@@ -49,4 +48,6 @@ public interface App extends EventProcessor<AppEvent> {
     Priority getApplicationPriority();
 
     boolean isAppInCompletedStates();
+
+    Map<String, String> getApplicationEnvs();
 }

@@ -1,6 +1,7 @@
 package agent;
 
 import agent.application.Application;
+import common.struct.AppWorkId;
 import common.struct.ApplicationId;
 import agent.application.ApplicationState;
 import agent.appworkmanage.appwork.AppWork;
@@ -207,7 +208,7 @@ public class AgentStatusReporter extends AbstractService {
         List<AppWorkStatus> statuses = new ArrayList<>();
 
         for (AppWork appWork : this.context.getAppWorks().values()) {
-            String appWorkId = appWork.getAppWorkId();
+            AppWorkId appWorkId = appWork.();
             ApplicationId applicationId = appWork.getAppId();
             AppWorkStatus appWorkStatus = appWork.cloneAndGetAppWorkStatus();
             if (appWorkStatus.getState() == AppWorkState.DONE) {

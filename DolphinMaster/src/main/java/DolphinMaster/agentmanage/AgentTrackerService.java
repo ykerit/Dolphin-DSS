@@ -99,7 +99,9 @@ public class AgentTrackerService extends AbstractService implements AgentTracker
             response.setTips(errMsg);
             return response;
         }
-        Node node = new NodeImp(agentId, dolphinContext, hostname, capability, physicalResource);
+        Node node = new NodeImp(agentId, dolphinContext,
+                hostname, agentId.getCommandPort(),
+                capability, physicalResource);
         Node oldNode = this.dolphinContext.getNodes().putIfAbsent(agentId, node);
         if (oldNode == null) {
             AgentStartedEvent startedEvent = new AgentStartedEvent(agentId,
@@ -164,6 +166,7 @@ public class AgentTrackerService extends AbstractService implements AgentTracker
             return response;
         }
         populate(request, response);
+        node.setAndUpdateAgentHeartbeatResponse(response);
         return response;
     }
 

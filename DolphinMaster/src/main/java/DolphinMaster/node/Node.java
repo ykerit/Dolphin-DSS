@@ -1,13 +1,12 @@
 package DolphinMaster.node;
 
 import DolphinMaster.DolphinContext;
-import agent.application.Application;
-import agent.appworkmanage.appwork.AppWork;
 import agent.message.AgentHeartBeatResponse;
 import common.resource.Resource;
 import common.resource.ResourceUtilization;
 import common.struct.AgentId;
 import common.struct.ApplicationId;
+import common.struct.RemoteAppWork;
 
 import java.util.Collection;
 import java.util.List;
@@ -45,6 +44,6 @@ public interface Node {
 
     void setAndUpdateAgentHeartbeatResponse(AgentHeartBeatResponse response);
 
-    Collection<AppWork> getToBeUpdateAppWorks();
+    Collection<RemoteAppWork> getToBeUpdateAppWorks();
 
 }

@@ -1,47 +1,47 @@
 package DolphinMaster.scheduler;
 
-import agent.appworkmanage.appwork.AppWork;
 import common.resource.Resource;
+import common.struct.RemoteAppWork;
 
 import java.util.List;
 import java.util.Set;
 
 public class Allocation {
-    final List<AppWork> appWorks;
+    final List<RemoteAppWork> appWorks;
     final Set<String> strictAppWorks;
     final Set<String> fungibleAppWorks;
-    final List<AppWork> increasedAppWorks;
-    final List<AppWork> decreasedAppWorks;
-    final List<AppWork> promotedAppWorks;
-    final List<AppWork> demotedAppWorks;
-    private final List<AppWork> previousAttemptAppWorks;
+    final List<RemoteAppWork> increasedAppWorks;
+    final List<RemoteAppWork> decreasedAppWorks;
+    final List<RemoteAppWork> promotedAppWorks;
+    final List<RemoteAppWork> demotedAppWorks;
+    private final List<RemoteAppWork> previousAttemptAppWorks;
     private Resource resourceLimit;
 
-    public Allocation(List<AppWork> appWorks, Resource resourceLimit,
+    public Allocation(List<RemoteAppWork> appWorks, Resource resourceLimit,
                       Set<String> strictAppWorks, Set<String> fungibleAppWorks) {
         this(appWorks, resourceLimit, strictAppWorks, fungibleAppWorks, null, null);
     }
 
-    public Allocation(List<AppWork> appWorks,
+    public Allocation(List<RemoteAppWork> appWorks,
                       Resource resourceLimit,
                       Set<String> strictAppWorks,
                       Set<String> fungibleAppWorks,
-                      List<AppWork> increasedAppWorks,
-                      List<AppWork> decreasedAppWorks) {
+                      List<RemoteAppWork> increasedAppWorks,
+                      List<RemoteAppWork> decreasedAppWorks) {
         this(appWorks, resourceLimit, strictAppWorks, fungibleAppWorks,
                 increasedAppWorks, decreasedAppWorks,
                 null, null, null);
     }
 
-    public Allocation(List<AppWork> appWorks,
+    public Allocation(List<RemoteAppWork> appWorks,
                       Resource resourceLimit,
                       Set<String> strictAppWorks,
                       Set<String> fungibleAppWorks,
-                      List<AppWork> increasedAppWorks,
-                      List<AppWork> decreasedAppWorks,
-                      List<AppWork> promotedAppWorks,
-                      List<AppWork> demotedAppWorks,
-                      List<AppWork> previousAttemptAppWorks) {
+                      List<RemoteAppWork> increasedAppWorks,
+                      List<RemoteAppWork> decreasedAppWorks,
+                      List<RemoteAppWork> promotedAppWorks,
+                      List<RemoteAppWork> demotedAppWorks,
+                      List<RemoteAppWork> previousAttemptAppWorks) {
         this.appWorks = appWorks;
         this.strictAppWorks = strictAppWorks;
         this.fungibleAppWorks = fungibleAppWorks;
@@ -53,12 +53,16 @@ public class Allocation {
         this.resourceLimit = resourceLimit;
     }
 
-    public List<AppWork> getAppWorks() {
+    public List<RemoteAppWork> getAppWorks() {
         return appWorks;
     }
 
     public Resource getResourceLimit() {
         return resourceLimit;
+    }
+
+    public void setResourceLimit(Resource resourceLimit) {
+        this.resourceLimit = resourceLimit;
     }
 
     public Set<String> getStrictAppWorks() {
@@ -69,28 +73,24 @@ public class Allocation {
         return fungibleAppWorks;
     }
 
-    public List<AppWork> getIncreasedAppWorks() {
+    public List<RemoteAppWork> getIncreasedAppWorks() {
         return increasedAppWorks;
     }
 
-    public List<AppWork> getDecreasedAppWorks() {
+    public List<RemoteAppWork> getDecreasedAppWorks() {
         return decreasedAppWorks;
     }
 
-    public List<AppWork> getPromotedAppWorks() {
+    public List<RemoteAppWork> getPromotedAppWorks() {
         return promotedAppWorks;
     }
 
-    public List<AppWork> getDemotedAppWorks() {
+    public List<RemoteAppWork> getDemotedAppWorks() {
         return demotedAppWorks;
     }
 
-    public List<AppWork> getPreviousAttemptAppWorks() {
+    public List<RemoteAppWork> getPreviousAttemptAppWorks() {
         return previousAttemptAppWorks;
-    }
-
-    public void setResourceLimit(Resource resourceLimit) {
-        this.resourceLimit = resourceLimit;
     }
 
     @Override

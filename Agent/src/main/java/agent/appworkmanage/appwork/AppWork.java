@@ -1,26 +1,44 @@
 package agent.appworkmanage.appwork;
 
+import common.struct.AppWorkId;
 import common.struct.ApplicationId;
 import common.context.AppWorkLaunchContext;
 import agent.status.AppWorkStatus;
 import common.event.EventProcessor;
 import common.resource.Resource;
 import common.struct.AgentId;
+import common.struct.Priority;
 
 import java.nio.file.Path;
+import java.util.Set;
 
 public interface AppWork extends EventProcessor<AppWorkEvent> {
-    ApplicationId getAppId();
+    AppWorkId getAppWorkId();
+
+    void setAppWorkId(AppWorkId appWorkId);
 
     AgentId getAgentId();
 
-    String getAppWorkId();
+    void setAgentId(AgentId agentId);
+
+    Resource getResource();
+
+    void setResource(Resource resource);
+
+    Priority getPriority();
+
+    void setPriority();
+
+    Set<String> getAllocationTags();
+
+    void setAllocationTags(Set<String> allocationTags);
+
+
+    ApplicationId getAppId();
 
     String getAppWorkStartTime();
 
     String getAppWorkLaunchedTime();
-
-    Resource getResource();
 
     String getUser();
 
@@ -33,8 +51,6 @@ public interface AppWork extends EventProcessor<AppWorkEvent> {
     void setWorkDir();
 
     boolean isRunning();
-
-    int getPriority();
 
     AppWorkExecType getExecType();
 

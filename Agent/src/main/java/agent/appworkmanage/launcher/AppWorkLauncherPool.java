@@ -8,6 +8,7 @@ import agent.appworkmanage.appwork.AppWork;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import common.event.EventDispatcher;
 import common.service.AbstractService;
+import common.struct.AppWorkId;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -30,7 +31,7 @@ public class AppWorkLauncherPool extends AbstractService implements AbstractAppW
                             .setNameFormat("AppWorkLauncher %d")
                             .build());
 
-    public final ConcurrentMap<String, AppWorkLauncher> running = new ConcurrentHashMap<>();
+    public final ConcurrentMap<AppWorkId, AppWorkLauncher> running = new ConcurrentHashMap<>();
 
     public AppWorkLauncherPool() {
         super(AppWorkLauncherPool.class.getName());
@@ -47,7 +48,7 @@ public class AppWorkLauncherPool extends AbstractService implements AbstractAppW
     @Override
     public void process(AppWorkLauncherPoolEvent event) {
         AppWork appWork = event.getAppWork();
-        String id = appWork.getAppWorkId();
+        AppWorkId id = appWork.;
         switch (event.getType()) {
             case LAUNCHER_APP_WORK:
                 Application application = context.getApplications().get(appWork.getAppId());

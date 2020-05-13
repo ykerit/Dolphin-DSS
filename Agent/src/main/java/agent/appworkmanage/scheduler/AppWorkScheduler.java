@@ -6,6 +6,7 @@ import agent.appworkmanage.appwork.AppWorkExecType;
 import common.event.EventDispatcher;
 import common.event.EventProcessor;
 import common.service.AbstractService;
+import common.struct.AppWorkId;
 
 import java.util.LinkedHashMap;
 
@@ -16,13 +17,13 @@ public class AppWorkScheduler extends AbstractService implements EventProcessor<
     private final int maxOppSize;
 
     // queue of promise to run appWork waiting for resource.
-    private final LinkedHashMap<String, AppWork> promiseAppWorks = new LinkedHashMap<>();
+    private final LinkedHashMap<AppWorkId, AppWork> promiseAppWorks = new LinkedHashMap<>();
     // queue of opportunistic appWork waiting for resource to run.
-    private final LinkedHashMap<String, AppWork> opportunisticAppWorks = new LinkedHashMap<>();
+    private final LinkedHashMap<AppWorkId, AppWork> opportunisticAppWorks = new LinkedHashMap<>();
     // queue of reusable appWork
-    private final LinkedHashMap<String, AppWork> reusableAppWorks = new LinkedHashMap<>();
+    private final LinkedHashMap<AppWorkId, AppWork> reusableAppWorks = new LinkedHashMap<>();
     // queue of appWork status is RUNNING or IDLE.
-    private final LinkedHashMap<String, AppWork> runningAppWorks = new LinkedHashMap<>();
+    private final LinkedHashMap<AppWorkId, AppWork> runningAppWorks = new LinkedHashMap<>();
 
     public AppWorkScheduler(Context context, EventDispatcher dispatcher, int maxOppSize) {
         super(AppWorkScheduler.class.getName());
