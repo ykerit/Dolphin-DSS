@@ -1,42 +1,27 @@
 $(function () {
     var option = {
         title: {
-            text: '2010 ~ 2016 年太阳能行业就业人员发展情况'
+            text: 'DolphinMaster'
         },
         yAxis: {
             title: {
-                text: '就业人数'
+                text: '事件数'
             }
         },
-        legend: {
-            layout: 'vertical',
-            align: 'right',
-            verticalAlign: 'middle'
-        },
-        plotOptions: {
-            series: {
-                label: {
-                    connectorAllowed: false
-                },
-                pointStart: 2010
-            }
+        credits: {
+            enabled: false // 禁用版权信息
         },
         series: [{
-            name: '安装，实施人员',
-            data: [43934, 52503, 57177, 69658, 97031, 119931, 137133, 154175]
+            data: [43934, 52503, 57177, 69658, 97031, 119931, 137133, 154175],
+            showInLegend: false
         }],
         responsive: {
             rules: [{
                 condition: {
                     maxWidth: 500
                 },
-                chartOptions: {
-                    legend: {
-                        layout: 'horizontal',
-                        align: 'center',
-                        verticalAlign: 'bottom'
-                    }
-                }
+                chartOptions: {}
+
             }]
         }
     };
