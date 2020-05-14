@@ -1,7 +1,16 @@
 $(function () {
+    Highcharts.setOptions({
+        global: {
+            useUTC: false
+        }
+    });
     var option = {
         title: {
             text: 'DolphinMaster'
+        },
+        xAxis: {
+            type: 'datetime',
+            tickPixelInterval: 150
         },
         yAxis: {
             title: {
@@ -11,9 +20,35 @@ $(function () {
         credits: {
             enabled: false // 禁用版权信息
         },
+        events: {
+            load: function () {
+                var series = this.series[0],
+                    chart = this;
+                setInterval(function () {
+                    var x = (new Date()).getTime(), // 当前时间
+                        y = Math.random(); // 随机值
+                    series.addPoint([x, y], true, true);
+                }, 1000);
+            }
+        },
+        legend: {
+            enabled: false
+        },
         series: [{
-            data: [43934, 52503, 57177, 69658, 97031, 119931, 137133, 154175],
-            showInLegend: false
+            name: '随机数据',
+            data: (function () {
+                // 生成随机值
+                var data = [],
+                    time = (new Date()).getTime(),
+                    i;
+                for (i = -19; i <= 0; i += 1) {
+                    data.push({
+                        x: time + i * 1000,
+                        y: Math.random()
+                    });
+                }
+                return data;
+            }())
         }],
         responsive: {
             rules: [{
