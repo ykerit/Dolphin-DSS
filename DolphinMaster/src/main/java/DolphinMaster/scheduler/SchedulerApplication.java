@@ -2,13 +2,16 @@ package DolphinMaster.scheduler;
 
 import DolphinMaster.DolphinContext;
 import DolphinMaster.app.App;
+import DolphinMaster.app.AppState;
 import DolphinMaster.node.NodeCleanAppWorkEvent;
-import DolphinMaster.schedulerunit.SchedulerUnit;
-import DolphinMaster.schedulerunit.SchedulerUnitEvent;
-import DolphinMaster.schedulerunit.SchedulerUnitEventType;
+import DolphinMaster.scheduler.fica.FicaSchedulerNode;
+import DolphinMaster.schedulerunit.*;
 import agent.appworkmanage.appwork.AppWork;
+import agent.status.AppWorkStatus;
+import api.app_master_message.ResourceRequest;
 import common.context.ApplicationSubmission;
 import common.resource.Resource;
+import common.resource.Resources;
 import common.struct.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -29,7 +32,7 @@ public class SchedulerApplication {
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     private final DolphinContext context;
     protected String appAMNodePartitionName = "";
-    private final Resource resourceLimit = new Resource(0, 0);
+    private volatile Resource resourceLimit = new Resource(0, 0);
     private final boolean amRunning = false;
     private final ApplicationId applicationId;
     private volatile Priority appPriority = null;
@@ -45,11 +48,13 @@ public class SchedulerApplication {
     private final Map<AppWorkId, SchedulerUnit> newlyDecreaseAppWorks = new HashMap<>();
     private final Map<AppWorkId, SchedulerUnit> newlyIncreaseAppWorks = new HashMap<>();
     private Set<AppWorkId> pendingRelease = null;
+    private String user;
     private final ResourcePool pool;
     private final boolean isStopped = false;
     private Map<String, String> applicationSchedulingEnvs = new HashMap<>();
     private final AtomicLong unconfirmedAllocatedMem = new AtomicLong();
     private final AtomicInteger unconfirmedAllocateVCore = new AtomicInteger();
+    private final AtomicInteger appWorkIdCounter = new AtomicInteger(0);
 
     public SchedulerApplication(ApplicationId applicationId, String user,
                                 ResourcePool pool, DolphinContext context) {
@@ -76,6 +81,10 @@ public class SchedulerApplication {
         } finally {
             readLock.unlock();
         }
+    }
+
+    public long getNewAppWorkId() {
+        return this.appWorkIdCounter.incrementAndGet();
     }
 
     public ApplicationId getApplicationId() {
@@ -183,6 +192,17 @@ public class SchedulerApplication {
         }
     }
 
+    public void showRequest() {
+        if (log.isDebugEnabled()) {
+            readLock.lock();
+            try {
+
+            } finally {
+                readLock.unlock();
+            }
+        }
+    }
+
     public synchronized void addToNewlyDemotedAppWorks(AppWorkId appWorkId, SchedulerUnit schedulerUnit) {
         newlyDecreaseAppWorks.put(appWorkId, schedulerUnit);
     }
@@ -213,5 +233,71 @@ public class SchedulerApplication {
 
     public ResourceUsage getSchedulingResourceUsage() {
         return appResourceUsage;
+    }
+
+    public void setHeadRoom(Resource globalLimit) {
+        this.resourceLimit = Resources.componentwiseMax(globalLimit, Resources.none());
+    }
+
+    public Resource getHeadRoom() {
+        return resourceLimit;
+    }
+
+    public String getUser() {
+        return user;
+    }
+
+    public void setUser(String user) {
+        this.user = user;
+    }
+
+    public boolean appWorkCompleted(SchedulerUnit schedulerUnit,
+                                    AppWorkStatus appWorkStatus, SchedulerUnitEventType type) {
+        writeLock.lock();
+        try {
+            AppWorkId appWorkId = schedulerUnit.getAppWorkId();
+            if (liveAppWorks.remove(schedulerUnit) == null) {
+                return false;
+            }
+            newlyAllocatedSchedulerUnits.remove(schedulerUnit);
+            schedulerUnit.process(new SchedulerUnitFinishedEvent(appWorkId, appWorkStatus, type));
+            Resource appWorkResource = schedulerUnit.getAppWork().getResource();
+            appResourceUsage.decUsed(appWorkResource);
+            return true;
+        } finally {
+            writeLock.unlock();
+        }
+    }
+
+    public void updateResourceRequests(List<ResourceRequest> resourceRequests) {
+
+    }
+
+    public void stop(AppState finalAppState) {
+        pool.getPoolMetrics();
+    }
+
+    public SchedulerUnit allocate(FicaSchedulerNode node, RemoteAppWork appWork) {
+        writeLock.lock();
+        try {
+            if (isStopped) {
+                return null;
+            }
+            SchedulerUnit schedulerUnit = new SchedulerUnitImp(appWork, this.applicationId,
+                    node.getNodeId(), user, context);
+            schedulerUnit.setPoolName(pool.getPoolName());
+            addToNewlyAllocatedAppWorks(node, schedulerUnit);
+            AppWorkId appWorkId = appWork.getAppWorkId();
+            liveAppWorks.put(appWorkId, schedulerUnit);
+            appResourceUsage.incUsed(appWork.getResource());
+            schedulerUnit.process(new SchedulerUnitEvent(appWorkId, SchedulerUnitEventType.START));
+            if (log.isDebugEnabled()) {
+                log.debug("allocate: applicationId = " + applicationId +
+                        " AppWork=" + appWorkId + "host=" + appWork.getAgentId().getHostname());
+            }
+            return schedulerUnit;
+        } finally {
+            writeLock.unlock();
+        }
     }
 }

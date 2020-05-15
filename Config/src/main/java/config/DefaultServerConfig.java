@@ -6,4 +6,5 @@ public class DefaultServerConfig {
     public static final int WEB_APP_PORT = 9002;
     public static final int NODE_TRACKER_PORT = 9003;
     public static final int AGENT_PORT = 9004;
+    public static final int APP_MASTER_TRACKER_PORT = 9005;
 }

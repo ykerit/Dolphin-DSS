@@ -5,6 +5,7 @@ import agent.status.AgentAction;
 import api.MessageID;
 import common.resource.Resource;
 import common.struct.ApplicationId;
+import common.struct.RemoteAppWork;
 import org.greatfree.message.ServerMessage;
 
 import java.util.Collection;
@@ -18,8 +19,8 @@ public class AgentHeartBeatResponse extends ServerMessage {
     private List<String> appWorksToCleanup;
     private List<String> appWorksToBeRemoved;
     private List<ApplicationId> applicationsToCleanup;
-    private List<AppWork> appWorksToUpdate;
-    private List<AppWork> appWorksToDecrease;
+    private List<RemoteAppWork> appWorksToUpdate;
+    private List<RemoteAppWork> appWorksToDecrease;
 
     public AgentHeartBeatResponse() {
         super(MessageID.HEART_BEAT_RESPONSE);
@@ -79,19 +80,19 @@ public class AgentHeartBeatResponse extends ServerMessage {
         this.applicationsToCleanup = applicationsToCleanup;
     }
 
-    public List<AppWork> getAppWorksToUpdate() {
+    public List<RemoteAppWork> getAppWorksToUpdate() {
         return appWorksToUpdate;
     }
 
-    public void setAppWorksToUpdate(Collection<AppWork> appWorksToUpdate) {
+    public void setAppWorksToUpdate(Collection<RemoteAppWork> appWorksToUpdate) {
         this.appWorksToUpdate.addAll(appWorksToUpdate);
     }
 
-    public List<AppWork> getAppWorksToDecrease() {
+    public List<RemoteAppWork> getAppWorksToDecrease() {
         return appWorksToDecrease;
     }
 
-    public void setAppWorksToDecrease(List<AppWork> appWorksToDecrease) {
+    public void setAppWorksToDecrease(List<RemoteAppWork> appWorksToDecrease) {
         this.appWorksToDecrease = appWorksToDecrease;
     }
 }

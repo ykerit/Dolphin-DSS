@@ -56,6 +56,8 @@ public class Configuration {
     public final String DEFAULT_CGROUP_HIERARCHY = "/dolphin";
     public final long DEFAULT_DELETE_CGROUP_TIMEOUT = 1000L;
     public final long DEFAULT_DELETE_CGROUP_DELAY = 1000L;
+    public final int SCHEDULER_MINIMUM_ALLOCATION_MB = 0;
+    public final int SCHEDULER_MAXIMUM_ALLOCATION_MB = Integer.MAX_VALUE;
 
     // hardware setting
     public final boolean ENABLE_LOGICAL_PROCESSOR = false;

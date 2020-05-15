@@ -13,6 +13,11 @@ public class AgentId implements Serializable, Comparable<AgentId> {
         this.localIP = localIP;
     }
 
+    public AgentId(String localIP, int commandPort) {
+        this.localIP = localIP;
+        this.commandPort = commandPort;
+    }
+
     public void setAgentKey(long agentKey) {
         this.agentKey = agentKey;
     }

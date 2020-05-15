@@ -10,7 +10,7 @@ public class SchedulerAppReport {
     private final Collection<SchedulerUnit> reserved;
     private final boolean pending;
 
-    public SchedulerAppReport(App app) {
+    public SchedulerAppReport(SchedulerApplication app) {
         this.live = null;
         this.reserved = null;
         this.pending = false;

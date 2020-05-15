@@ -1,8 +1,10 @@
 package DolphinMaster;
 
 import DolphinMaster.agentmanage.AgentTrackerService;
+import DolphinMaster.app.AMLiveLinessMonitor;
 import DolphinMaster.app.App;
 import DolphinMaster.node.Node;
+import DolphinMaster.scheduler.ResourceScheduler;
 import DolphinMaster.security.SecurityManager;
 import agent.application.Application;
 import common.context.ServiceContext;
@@ -15,7 +17,7 @@ import config.Configuration;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-public class DolphinContext {
+public class DolphinContext implements AppMasterServiceContext {
     private ServiceContext serviceContext;
     private ActiveServiceContext activeServiceContext;
     private DolphinMaster dolphinMaster;
@@ -23,14 +25,12 @@ public class DolphinContext {
     private SecurityManager securityManager;
 
 
-
-    public DolphinContext() {
+    public DolphinContext(AMLiveLinessMonitor amLiveLinessMonitor) {
         this.serviceContext = new ServiceContext();
-        this.activeServiceContext = new ActiveServiceContext();
+        this.activeServiceContext = new ActiveServiceContext(amLiveLinessMonitor);
     }
 
     public DolphinContext(EventDispatcher dispatcher, Configuration configuration) {
-        this();
         setConfiguration(configuration);
         this.setDolphinDispatcher(dispatcher);
     }
@@ -91,4 +91,11 @@ public class DolphinContext {
         return activeServiceContext.getApplications();
     }
 
+    public AMLiveLinessMonitor getAMLiveLinessMonitor() {
+        return activeServiceContext.getAmLiveLinessMonitor();
+    }
+
+    public ResourceScheduler getScheduler() {
+        return this.activeServiceContext.getScheduler();
+    }
 }

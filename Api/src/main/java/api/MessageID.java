@@ -10,4 +10,8 @@ public class MessageID {
     public static final int UNREGISTER_AGENT_NOTIFICATION = 9;
     public static final int HEART_BEAT_REQUEST = 7;
     public static final int HEART_BEAT_RESPONSE = 8;
+    public static final int APP_MASTER_REGISTER_REQUEST = 10;
+    public static final int APP_MASTER_REGISTER_RESPONSE = 11;
+    public static final int ALLOCATE_REQUEST = 12;
+    public static final int ALLOCATE_RESPONSE = 13;
 }

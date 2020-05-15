@@ -116,6 +116,13 @@ public class Resources {
         return lhs;
     }
 
+    public static boolean greaterThanOrEqual(
+            ResourceCalculator resourceCalculator,
+            Resource clusterResource,
+            Resource lhs, Resource rhs) {
+        return resourceCalculator.compare(clusterResource, lhs, rhs) >= 0;
+    }
+
     public static Resource add(Resource lhs, Resource rhs) {
         return addTo(clone(lhs), rhs);
     }
@@ -127,6 +134,13 @@ public class Resources {
             lhs.setResourceValue(i, lhsValue.getValue() - rhsValue.getValue());
         }
         return lhs;
+    }
+
+    public static boolean lessThan(
+            ResourceCalculator resourceCalculator,
+            Resource clusterResource,
+            Resource lhs, Resource rhs) {
+        return (resourceCalculator.compare(clusterResource, lhs, rhs) < 0);
     }
 
     public static Resource componentwiseMin(Resource lhs, Resource rhs) {
@@ -289,5 +303,10 @@ public class Resources {
             lhs.setResourceValue(i, value);
         }
         return lhs;
+    }
+
+    public static Resource normalize(ResourceCalculator calculator, Resource lhs, Resource min,
+                                     Resource max, Resource increment) {
+        return calculator.normalize(lhs, min, max, increment);
     }
 }

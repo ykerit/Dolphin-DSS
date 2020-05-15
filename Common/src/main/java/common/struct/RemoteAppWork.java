@@ -12,6 +12,14 @@ public class RemoteAppWork implements Comparable<RemoteAppWork>, Serializable {
     private Priority priority;
     private Set<String> allocationTags;
 
+    public RemoteAppWork(AppWorkId appWorkId, AgentId agentId, Resource resource, Priority priority, Set<String> allocationTags) {
+        this.appWorkId = appWorkId;
+        this.agentId = agentId;
+        this.resource = resource;
+        this.priority = priority;
+        this.allocationTags = allocationTags;
+    }
+
     public AppWorkId getAppWorkId() {
         return appWorkId;
     }

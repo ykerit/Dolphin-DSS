@@ -2,6 +2,7 @@ package DolphinMaster.scheduler;
 
 import DolphinMaster.DolphinContext;
 import DolphinMaster.schedulerunit.SchedulerUnit;
+import api.app_master_message.ResourceRequest;
 import common.struct.AppWorkId;
 import common.struct.ApplicationId;
 import common.exception.DolphinException;
@@ -33,7 +34,7 @@ public interface ResourceScheduler {
 
     int getNumClusterNodes();
 
-    Allocation allocate(ApplicationId appDescribeId);
+    Allocation allocate(ApplicationId applicationId, List<ResourceRequest> ask, List<AppWorkId> release);
 
     SchedulerNodeReport getNodeReport(AgentId id);
 
@@ -59,5 +60,9 @@ public interface ResourceScheduler {
 
     void getClusterMaxPriority();
 
-    SchedulerNode getSchedulerNode(AgentId agentId);
+    Resource getNormalizedResource(Resource reqRes, Resource maxResourceCapability);
+
+    public SchedulerNode getNode(AgentId agentId);
+
+    PoolMetrics getRootPoolMetrics();
 }

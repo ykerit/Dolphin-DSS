@@ -1,9 +1,11 @@
 package DolphinMaster.schedulerunit;
 
+import agent.appworkmanage.appwork.AppWorkState;
 import common.event.EventProcessor;
 import common.resource.Resource;
 import common.struct.*;
 
+import java.awt.*;
 import java.util.Set;
 
 // Each scheduler unit maps an AppWork
@@ -15,6 +17,8 @@ public interface SchedulerUnit extends EventProcessor<SchedulerUnitEvent>, Compa
     SchedulerUnitState getState();
 
     RemoteAppWork getAppWork();
+
+    void setAppWork(RemoteAppWork appWork);
 
     Resource getReservedResource();
 
@@ -38,7 +42,9 @@ public interface SchedulerUnit extends EventProcessor<SchedulerUnitEvent>, Compa
 
     boolean isAMAppWork();
 
-    String getQueueName();
+    String getPoolName();
+
+    void setPoolName(String name);
 
     Resource getAllocateOrReservedResource();
 
@@ -49,4 +55,6 @@ public interface SchedulerUnit extends EventProcessor<SchedulerUnitEvent>, Compa
     Set<String> getAllocationTags();
 
     ApplicationId getApplicationId();
+
+    AppWorkState getAppWorkState();
 }

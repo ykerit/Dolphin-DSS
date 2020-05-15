@@ -46,4 +46,6 @@ public interface Node {
 
     Collection<RemoteAppWork> getToBeUpdateAppWorks();
 
+    List<UpdateAppWorkInfo> pullAppWorkUpdates();
+
 }

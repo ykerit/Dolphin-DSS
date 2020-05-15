@@ -162,10 +162,10 @@ public abstract class SchedulerNode {
         Resources.addTo(allocatedResource, resource);
     }
 
-    public abstract void reserveResource(App app, SchedulerUnit unit);
+    public abstract void reserveResource(SchedulerApplication app, SchedulerUnit unit);
 
 
-    public abstract void unreserveResource(App attempt);
+    public abstract void unreserveResource(SchedulerApplication application);
 
     @Override
     public String toString() {

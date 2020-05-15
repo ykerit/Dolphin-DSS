@@ -8,6 +8,13 @@ public class AppWorkId implements Serializable, Comparable<AppWorkId> {
     private long appWorkId;
     private ApplicationId applicationId;
 
+    public AppWorkId() {}
+
+    public AppWorkId(ApplicationId applicationId, long appWorkId) {
+        this.appWorkId = appWorkId;
+        this.applicationId = applicationId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

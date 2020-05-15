@@ -19,7 +19,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-;
 
 public class NodeImp implements Node, EventProcessor<NodeEvent> {
 
@@ -200,6 +199,16 @@ public class NodeImp implements Node, EventProcessor<NodeEvent> {
         } finally {
             readLock.unlock();
         }
+    }
+
+    @Override
+    public List<UpdateAppWorkInfo> pullAppWorkUpdates() {
+        List<UpdateAppWorkInfo> latestAppWorkInfoList = new ArrayList<>();
+        UpdateAppWorkInfo appWorkInfo;
+        while ((appWorkInfo = nodeUpdateQueue.poll()) != null) {
+            latestAppWorkInfoList.add(appWorkInfo);
+        }
+        return latestAppWorkInfoList;
     }
 
     @Override
