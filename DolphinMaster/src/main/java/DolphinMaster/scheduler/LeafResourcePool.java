@@ -1,5 +1,7 @@
 package DolphinMaster.scheduler;
 
+import DolphinMaster.scheduler.fair.FairSchedulerApplication;
+import DolphinMaster.schedulerunit.SchedulerUnit;
 import common.struct.ApplicationId;
 import common.resource.Resource;
 import common.resource.Resources;
@@ -19,8 +21,8 @@ public class LeafResourcePool extends ResourcePoolImp {
 
     private FSContext context;
 
-    private final List<AppDescribe> runnableApps = new ArrayList<>();
-    private final List<AppDescribe> nonRunnableApps = new ArrayList<>();
+    private final List<FairSchedulerApplication> runnableApps = new ArrayList<>();
+    private final List<FairSchedulerApplication> nonRunnableApps = new ArrayList<>();
     private final Set<ApplicationId> assignedApps = new HashSet<>();
     private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
     private final Lock readLock = readWriteLock.readLock();
@@ -37,7 +39,7 @@ public class LeafResourcePool extends ResourcePoolImp {
         amResourceUsage = Resource.newInstance(0, 0);
     }
 
-    void addApp(AppDescribe app, boolean runnable) {
+    void addApp(FairSchedulerApplication app, boolean runnable) {
         writeLock.lock();
         try {
             if (runnable) {
@@ -52,7 +54,7 @@ public class LeafResourcePool extends ResourcePoolImp {
         }
     }
 
-    boolean removeApp(AppDescribe app) {
+    boolean removeApp(FairSchedulerApplication app) {
         boolean runnable = false;
         writeLock.lock();
         try {
@@ -68,7 +70,7 @@ public class LeafResourcePool extends ResourcePoolImp {
         return runnable;
     }
 
-    boolean removeNonRunnableApp(AppDescribe app) {
+    boolean removeNonRunnableApp(FairSchedulerApplication app) {
         writeLock.lock();
         try {
             return nonRunnableApps.remove(app);
@@ -77,7 +79,7 @@ public class LeafResourcePool extends ResourcePoolImp {
         }
     }
 
-    boolean isRunnableApp(AppDescribe app) {
+    boolean isRunnableApp(FairSchedulerApplication app) {
         readLock.lock();
         try {
             return runnableApps.contains(app);
@@ -86,7 +88,7 @@ public class LeafResourcePool extends ResourcePoolImp {
         }
     }
 
-    boolean isNonRunnableApp(AppDescribe app) {
+    boolean isNonRunnableApp(FairSchedulerApplication app) {
         readLock.lock();
         try {
             return nonRunnableApps.contains(app);
@@ -95,8 +97,8 @@ public class LeafResourcePool extends ResourcePoolImp {
         }
     }
 
-    List<AppDescribe> getCopyOfNonRunnableAppSchedulable() {
-        List<AppDescribe> ret = new ArrayList<>();
+    List<FairSchedulerApplication> getCopyOfNonRunnableAppSchedulable() {
+        List<FairSchedulerApplication> ret = new ArrayList<>();
         readLock.lock();
         try {
             ret.addAll(nonRunnableApps);
@@ -144,7 +146,7 @@ public class LeafResourcePool extends ResourcePoolImp {
         int numPendingApps = 0;
         readLock.lock();
         try {
-            for (AppDescribe app : runnableApps) {
+            for (FairSchedulerApplication app : runnableApps) {
                 if (app.isPending()) {
                     numPendingApps++;
                 }
@@ -179,14 +181,14 @@ public class LeafResourcePool extends ResourcePoolImp {
     }
 
     @Override
-    public void collectSchedulerApplication(Collection<AppDescribeId> apps) {
+    public void collectSchedulerApplication(Collection<ApplicationId> apps) {
         readLock.lock();
         try {
-            for (AppDescribe app : runnableApps) {
-                apps.add(app.getApplicationDescribeId());
+            for (FairSchedulerApplication app : runnableApps) {
+                apps.add(app.getApplicationId());
             }
-            for (AppDescribe app : nonRunnableApps) {
-                apps.add(app.getApplicationDescribeId());
+            for (FairSchedulerApplication app : nonRunnableApps) {
+                apps.add(app.getApplicationId());
             }
         } finally {
             readLock.unlock();
@@ -197,7 +199,7 @@ public class LeafResourcePool extends ResourcePoolImp {
         int numActiveApps = 0;
         readLock.lock();
         try {
-            for (AppDescribe app : runnableApps) {
+            for (FairSchedulerApplication app : runnableApps) {
                 if (!app.isPending()) {
                     numActiveApps++;
                 }
@@ -239,11 +241,11 @@ public class LeafResourcePool extends ResourcePoolImp {
         Resource tmpDemand = Resources.createResource(0);
         readLock.lock();
         try {
-            for (AppDescribe app : runnableApps) {
+            for (FairSchedulerApplication app : runnableApps) {
                 app.updateDemand();
                 Resources.addTo(tmpDemand, app.getDemand());
             }
-            for (AppDescribe app : nonRunnableApps) {
+            for (FairSchedulerApplication app : nonRunnableApps) {
                 app.updateDemand();
                 Resources.addTo(tmpDemand, app.getDemand());
             }
@@ -271,7 +273,7 @@ public class LeafResourcePool extends ResourcePoolImp {
             return assigned;
         }
 
-        for (AppDescribe app : fetchAppsWithDemand(true)) {
+        for (FairSchedulerApplication app : fetchAppsWithDemand(true)) {
             assigned = app.assignSchedulerUnit(node);
             if (!assigned.equals(Resources.none())) {
                 log.debug("Assigned SchedulerUnit in pool: {} AppWork: {}", getName(), assigned);
@@ -290,9 +292,9 @@ public class LeafResourcePool extends ResourcePoolImp {
     }
 
 
-    private Resource updateStarvedAppsFairShare(TreeSet<AppDescribe> appWithDemand) {
+    private Resource updateStarvedAppsFairShare(TreeSet<FairSchedulerApplication> appWithDemand) {
         Resource fairShareStarvation = Resources.clone(Resources.none());
-        for (AppDescribe app : appWithDemand) {
+        for (FairSchedulerApplication app : appWithDemand) {
             Resource appStarvation = app.fairShareStarvation();
             if (!Resources.isNone(appStarvation)) {
                 context.getStarvedApps().addStarvedApp(app);
@@ -304,11 +306,11 @@ public class LeafResourcePool extends ResourcePoolImp {
         return fairShareStarvation;
     }
 
-    private void updateStarvedAppsMinShare(final TreeSet<AppDescribe> appsWithDemand,
+    private void updateStarvedAppsMinShare(final TreeSet<FairSchedulerApplication> appsWithDemand,
                                            final Resource minShareStarvation) {
         Resource pending = Resources.clone(minShareStarvation);
 
-        for (AppDescribe app : appsWithDemand) {
+        for (FairSchedulerApplication app : appsWithDemand) {
             if (!Resources.isNone(pending)) {
                 Resource appMinShare = app.getPendingDemand();
                 Resources.subtractFromNonNegative(appMinShare, app.getFairShareStarvation());
@@ -324,18 +326,18 @@ public class LeafResourcePool extends ResourcePoolImp {
     }
 
     void updateStarvedApps() {
-        TreeSet<AppDescribe> appsWithDemand = fetchAppsWithDemand(false);
+        TreeSet<FairSchedulerApplication> appsWithDemand = fetchAppsWithDemand(false);
         Resource fairShareStarvation = updateStarvedAppsFairShare(appsWithDemand);
         Resource minShareStarvation = minShareStarvation();
         Resources.subtractFromNonNegative(minShareStarvation, fairShareStarvation);
         updateStarvedAppsMinShare(appsWithDemand, minShareStarvation);
     }
 
-    private TreeSet<AppDescribe> fetchAppsWithDemand(boolean assignment) {
-        TreeSet<AppDescribe> pendingForResourceApps = new TreeSet<>(policy.getComparator());
+    private TreeSet<FairSchedulerApplication> fetchAppsWithDemand(boolean assignment) {
+        TreeSet<FairSchedulerApplication> pendingForResourceApps = new TreeSet<>(policy.getComparator());
         readLock.lock();
         try {
-            for (AppDescribe app : runnableApps) {
+            for (FairSchedulerApplication app : runnableApps) {
                 if (!Resources.isNone(app.getPendingDemand()) && (assignment || app.shouldCheckForStarvation())) {
                     pendingForResourceApps.add(app);
                 }
@@ -439,7 +441,7 @@ public class LeafResourcePool extends ResourcePoolImp {
      * @return whether starved for fairshare
      */
     private boolean isStarvedForFairShare() {
-        for (AppDescribe app : runnableApps) {
+        for (FairSchedulerApplication app : runnableApps) {
             if (app.isStarvedForFairShare()) {
                 return true;
             }
@@ -486,4 +488,18 @@ public class LeafResourcePool extends ResourcePoolImp {
         }
     }
 
+    @Override
+    public void recoverAppWork(Resource clusterResource, SchedulerApplication schedulerApplication, SchedulerUnit schedulerUnit) {
+
+    }
+
+    @Override
+    public void incPendingResource(String nodeLabel, Resource resourceToInc) {
+
+    }
+
+    @Override
+    public void decPendingResource(String nodeLabel, Resource resourceToDec) {
+
+    }
 }

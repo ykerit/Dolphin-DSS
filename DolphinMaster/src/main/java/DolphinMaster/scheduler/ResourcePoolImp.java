@@ -1,8 +1,10 @@
 package DolphinMaster.scheduler;
 
+import DolphinMaster.scheduler.fair.FairSchedulerApplication;
 import DolphinMaster.scheduler.policy.SchedulingPolicy;
 import common.resource.Resource;
 import common.resource.Resources;
+import common.struct.ApplicationId;
 import common.struct.Priority;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -70,7 +72,7 @@ public abstract class ResourcePoolImp implements Schedulable, ResourcePool {
 
     public abstract boolean isEmpty();
 
-    public abstract void collectSchedulerApplication(Collection<AppDescribeId> apps);
+    public abstract void collectSchedulerApplication(Collection<ApplicationId> apps);
 
     protected abstract void dumpStateInterval(StringBuilder sb);
 
@@ -204,17 +206,6 @@ public abstract class ResourcePoolImp implements Schedulable, ResourcePool {
 
     public PoolMetrics getMetrics() {
         return metrics;
-    }
-
-
-    @Override
-    public void incPendingResource() {
-
-    }
-
-    @Override
-    public void decPendingResource() {
-
     }
 
     @Override

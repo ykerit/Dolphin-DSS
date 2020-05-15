@@ -46,4 +46,8 @@ public class FairScheduler {
     public PoolManager getPoolManager() {
         return null;
     }
+
+    AllocationConfiguration getAllocationConfiguration() {
+        return null;
+    }
 }

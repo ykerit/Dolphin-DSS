@@ -9,6 +9,7 @@ import common.resource.Resource;
 import common.resource.Resources;
 import common.struct.AppWorkId;
 import common.struct.ApplicationId;
+import common.struct.RemoteAppWork;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -25,7 +26,7 @@ public class FSSchedulerNode extends SchedulerNode{
 
     private Resource totalResourcesPreempted = Resource.newInstance(0, 0);
 
-    private App reservedAppSchedulable;
+    private SchedulerApplication reservedAppSchedulable;
 
     public FSSchedulerNode(Node node) {
         super(node);
@@ -40,7 +41,7 @@ public class FSSchedulerNode extends SchedulerNode{
     }
 
     @Override
-    public synchronized void reserveResource(App application, SchedulerUnit unit) {
+    public synchronized void reserveResource(SchedulerApplication application, SchedulerUnit unit) {
         SchedulerUnit reserveSchedulerUnit = getReservedSchedulerUnit();
         if (reserveSchedulerUnit != null) {
             if (!unit.getAppWork().getAgentId().equals(getNodeId())) {
@@ -51,7 +52,7 @@ public class FSSchedulerNode extends SchedulerNode{
                         " on node " + reserveSchedulerUnit.getReservedNode());
             }
 
-            if (!reserveSchedulerUnit.getAppWork().getAppId().equals(unit.getAppWork().getAppId())) {
+            if (!reserveSchedulerUnit.getAppWork().getAppWorkId().equals(unit.getAppWork().getAgentId())) {
                 throw new IllegalStateException("Trying to reserve" +
                         " container " + unit +
                         " for application " + application.getApplicationId() +
@@ -66,12 +67,7 @@ public class FSSchedulerNode extends SchedulerNode{
         this.reservedAppSchedulable = application;
     }
 
-    @Override
-    public synchronized void unreserveResource(App app) {
-
-    }
-
-    public App getReservedAppSchedulable() {
+    public SchedulerApplication getReservedAppSchedulable() {
         return reservedAppSchedulable;
     }
 
@@ -127,9 +123,9 @@ public class FSSchedulerNode extends SchedulerNode{
         super.allocateSchedulerUnit(unit, launchedOnNode);
         if (log.isDebugEnabled()) {
             final RemoteAppWork appWork = unit.getAppWork();
-            log.debug("Assigned container " + appWork. + " of capacity "
+            log.debug("Assigned AppWork " + appWork.getAppWorkId() + " of capacity "
                     + appWork.getResource() + " on host " + getNode().getNodeAddress()
-                    + ", which has " + getNumAppWorks() + " containers, "
+                    + ", which has " + getNumAppWorks() + " SchedulerUnit, "
                     + getAllocatedResource() + " used and " + getUnAllocatedResource()
                     + " available after allocation");
         }
@@ -138,7 +134,7 @@ public class FSSchedulerNode extends SchedulerNode{
         if (!Resources.isNone(allocated)) {
             // check for satisfied preemption request and update bookkeeping
             App app =
-                    appIdToAppMap.get(unit.getApplicationDescribeId());
+                    appIdToAppMap.get(unit.getApplicationId());
             if (app != null) {
                 Resource reserved = resourcePreemptedForApp.get(app);
                 Resource fulfilled = Resources.componentwiseMin(reserved, allocated);
@@ -147,11 +143,11 @@ public class FSSchedulerNode extends SchedulerNode{
                 if (Resources.isNone(reserved)) {
                     // No more preempted containers
                     resourcePreemptedForApp.remove(app);
-                    appIdToAppMap.remove(unit.getApplicationDescribeId());
+                    appIdToAppMap.remove(unit.getApplicationId());
                 }
             }
         } else {
-            log.error("Allocated empty container" + unit.);
+            log.error("Allocated empty AppWork" + unit.getAppWorkId());
         }
     }
 
@@ -163,6 +159,11 @@ public class FSSchedulerNode extends SchedulerNode{
         if (schedulerUnit != null) {
             schedulerUnitsForPreemption.remove(schedulerUnit);
         }
+    }
+
+    @Override
+    public void unreserveResource(SchedulerApplication application) {
+
     }
 
 

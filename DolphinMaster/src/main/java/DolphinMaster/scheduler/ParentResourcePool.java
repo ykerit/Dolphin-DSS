@@ -1,5 +1,6 @@
 package DolphinMaster.scheduler;
 
+import DolphinMaster.schedulerunit.SchedulerUnit;
 import com.google.common.collect.ImmutableList;
 import common.resource.Resource;
 import common.resource.Resources;
@@ -200,7 +201,7 @@ public class ParentResourcePool extends ResourcePoolImp {
     }
 
     @Override
-    public void collectSchedulerApplication(Collection<AppDescribeId> apps) {
+    public void collectSchedulerApplication(Collection<SchedulerApplication> apps) {
         readLock.lock();
         try {
             for (ResourcePoolImp child : childPools) {
@@ -228,5 +229,20 @@ public class ParentResourcePool extends ResourcePoolImp {
             sb.append(", ");
             child.dumpStateInterval(sb);
         }
+    }
+
+    @Override
+    public void recoverAppWork(Resource clusterResource, SchedulerApplication schedulerApplication, SchedulerUnit schedulerUnit) {
+
+    }
+
+    @Override
+    public void incPendingResource(String nodeLabel, Resource resourceToInc) {
+
+    }
+
+    @Override
+    public void decPendingResource(String nodeLabel, Resource resourceToDec) {
+
     }
 }
