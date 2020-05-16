@@ -3,6 +3,8 @@ package DolphinMaster.scheduler;
 import DolphinMaster.DolphinContext;
 import DolphinMaster.schedulerunit.SchedulerUnit;
 import api.app_master_message.ResourceRequest;
+import common.event.EventProcessor;
+import common.service.Service;
 import common.struct.AppWorkId;
 import common.struct.ApplicationId;
 import common.exception.DolphinException;
@@ -14,7 +16,7 @@ import config.Configuration;
 import java.io.IOException;
 import java.util.List;
 
-public interface ResourceScheduler {
+public interface ResourceScheduler extends EventProcessor<SchedulerEvent> {
 
     void setDolphinContext(DolphinContext context);
 

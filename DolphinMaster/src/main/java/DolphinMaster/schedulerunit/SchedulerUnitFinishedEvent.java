@@ -1,6 +1,6 @@
 package DolphinMaster.schedulerunit;
 
-import agent.status.AppWorkStatus;
+import common.struct.AppWorkStatus;
 import common.struct.AppWorkId;
 
 public class SchedulerUnitFinishedEvent extends SchedulerUnitEvent {

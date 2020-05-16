@@ -1,7 +1,7 @@
 package DolphinMaster;
 
 import DolphinMaster.node.Node;
-import agent.status.AppWorkStatus;
+import common.struct.AppWorkStatus;
 import common.resource.Resource;
 
 import java.util.List;

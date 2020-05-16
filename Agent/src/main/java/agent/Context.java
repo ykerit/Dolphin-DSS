@@ -62,8 +62,8 @@ public class Context {
         return this.serviceContext.getDispatcher();
     }
 
-    public void setAgentDispatcher(EventDispatcher eventDispatcher) {
-        this.serviceContext.setDispatcher(eventDispatcher);
+    public void setAgentDispatcher(EventDispatcher specialDispatcher) {
+        this.serviceContext.setDispatcher(specialDispatcher);
     }
 
     public Configuration getConfiguration() {

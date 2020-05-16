@@ -1,7 +1,7 @@
 package DolphinMaster.scheduler;
 
 import DolphinMaster.DolphinContext;
-import agent.status.AppWorkStatus;
+import common.struct.AppWorkStatus;
 import api.app_master_message.ResourceRequest;
 import common.exception.InvalidResourceRequestException;
 import common.resource.Resource;

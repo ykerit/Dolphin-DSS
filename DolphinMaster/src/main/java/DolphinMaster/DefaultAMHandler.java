@@ -65,11 +65,17 @@ public class DefaultAMHandler implements AppMasterServiceHandler {
             allocation = context.getScheduler().allocate(applicationId, ask, release);
         }
 
-
+        response.setAllocatedAppWorks(allocation.getAppWorks());
+        response.setAvailResources(allocation.getResourceLimit());
+        response.setNumClusterNodes(context.getScheduler().getNumClusterNodes());
     }
 
     @Override
     public void finishAppMaster(ApplicationId applicationId, FinishAppMasterRequest request, FinishAppMasterResponse response) {
+
+    }
+
+    private void handleNodeUpdate(App app, AllocateResponse allocateResponse) {
 
     }
 }

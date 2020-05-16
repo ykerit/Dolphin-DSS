@@ -3,7 +3,7 @@ package DolphinMaster.node;
 
 import DolphinMaster.DolphinContext;
 import agent.message.AgentHeartBeatResponse;
-import agent.status.AppWorkStatus;
+import common.struct.AppWorkStatus;
 import common.event.EventProcessor;
 import common.resource.Resource;
 import common.resource.ResourceUtilization;

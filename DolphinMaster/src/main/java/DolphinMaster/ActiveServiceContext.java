@@ -1,5 +1,7 @@
 package DolphinMaster;
 
+import DolphinMaster.agentmanage.AgentListManage;
+import DolphinMaster.agentmanage.AgentTrackerService;
 import DolphinMaster.app.AMLiveLinessMonitor;
 import DolphinMaster.app.App;
 import DolphinMaster.node.Node;
@@ -17,6 +19,10 @@ public class ActiveServiceContext {
 
     private AMLiveLinessMonitor amLiveLinessMonitor;
     private ResourceScheduler scheduler;
+    private AgentListManage agentListManage;
+    private AgentTrackerService agentTrackerService;
+    private AppMasterService appMasterService;
+    private ClientService clientService;
 
     public ConcurrentMap<ApplicationId, App> getApplications() {
         return applications;
@@ -33,10 +39,6 @@ public class ActiveServiceContext {
     public ActiveServiceContext() {
     }
 
-    public ActiveServiceContext(AMLiveLinessMonitor amLiveLinessMonitor) {
-        this.amLiveLinessMonitor = amLiveLinessMonitor;
-    }
-
     public AMLiveLinessMonitor getAmLiveLinessMonitor() {
         return amLiveLinessMonitor;
     }
@@ -51,5 +53,37 @@ public class ActiveServiceContext {
 
     public ResourceScheduler getScheduler() {
         return scheduler;
+    }
+
+    public AgentListManage getAgentListManage() {
+        return agentListManage;
+    }
+
+    public void setAgentListManage(AgentListManage agentListManage) {
+        this.agentListManage = agentListManage;
+    }
+
+    public AgentTrackerService getAgentTrackerService() {
+        return agentTrackerService;
+    }
+
+    public void setAgentTrackerService(AgentTrackerService agentTrackerService) {
+        this.agentTrackerService = agentTrackerService;
+    }
+
+    public AppMasterService getAppMasterService() {
+        return appMasterService;
+    }
+
+    public void setAppMasterService(AppMasterService appMasterService) {
+        this.appMasterService = appMasterService;
+    }
+
+    public ClientService getClientService() {
+        return clientService;
+    }
+
+    public void setClientService(ClientService clientService) {
+        this.clientService = clientService;
     }
 }

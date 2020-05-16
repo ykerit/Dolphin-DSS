@@ -89,6 +89,8 @@ public class ApplicationManager implements EventProcessor<ApplicationManagerEven
 
     public void submitApplication(ApplicationSubmission submission, long submitTime, String user) throws DolphinException {
         ApplicationId applicationId = submission.getApplicationId();
+        // 1. createApp
+        // 2. context.getApps().putIfAbsent()
         AppImp application = createAndPopulateNewApp(submission, submitTime, user, -1);
         this.context.getDolphinDispatcher().
                 getEventProcessor().process(new AppEvent(applicationId, AppEventType.START));

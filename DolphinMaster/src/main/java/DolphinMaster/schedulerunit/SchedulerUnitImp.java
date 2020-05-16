@@ -2,7 +2,7 @@ package DolphinMaster.schedulerunit;
 
 import DolphinMaster.DolphinContext;
 import agent.appworkmanage.appwork.AppWorkState;
-import agent.status.AppWorkStatus;
+import common.struct.AppWorkStatus;
 import common.event.EventProcessor;
 import common.resource.Resource;
 import common.struct.*;
@@ -157,7 +157,7 @@ public class SchedulerUnitImp implements SchedulerUnit {
         readLock.lock();
         try {
             if (finishedStatus != null) {
-                return finishedStatus.getExitStatus().getCode();
+                return finishedStatus.getExitStatus();
             } else {
                 return 0;
             }
@@ -230,13 +230,13 @@ public class SchedulerUnitImp implements SchedulerUnit {
     }
 
     @Override
-    public AppWorkState getAppWorkState() {
+    public RemoteAppWorkState getAppWorkState() {
         readLock.lock();
         try {
             if (finishedStatus != null) {
                 return finishedStatus.getState();
             } else {
-                return AppWorkState.RUNNING;
+                return RemoteAppWorkState.RUNNING;
             }
         } finally {
             readLock.unlock();

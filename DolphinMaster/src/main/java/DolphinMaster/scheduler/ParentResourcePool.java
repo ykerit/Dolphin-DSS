@@ -4,6 +4,7 @@ import DolphinMaster.schedulerunit.SchedulerUnit;
 import com.google.common.collect.ImmutableList;
 import common.resource.Resource;
 import common.resource.Resources;
+import common.struct.ApplicationId;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -201,7 +202,7 @@ public class ParentResourcePool extends ResourcePoolImp {
     }
 
     @Override
-    public void collectSchedulerApplication(Collection<SchedulerApplication> apps) {
+    public void collectSchedulerApplication(Collection<ApplicationId> apps) {
         readLock.lock();
         try {
             for (ResourcePoolImp child : childPools) {

@@ -10,7 +10,6 @@ import DolphinMaster.scheduler.fica.FicaSchedulerNode;
 import DolphinMaster.schedulerunit.SchedulerUnit;
 import DolphinMaster.schedulerunit.SchedulerUnitEventType;
 import DolphinMaster.schedulerunit.SchedulerUnitState;
-import agent.status.AppWorkStatus;
 import api.app_master_message.ResourceRequest;
 import common.exception.DolphinException;
 import common.exception.DolphinRuntimeException;
@@ -116,8 +115,6 @@ public class FifoScheduler extends AbstractScheduler {
                 new ConcurrentSkipListMap<>();
         this.minimumAllocation = super.getMinimumAllocation();
         initMaximumResourceCapability(super.getMaximumAllocation());
-        this.metrics = PoolMetrics.forQueue(DEFAULT_QUEUE_NAME, null, false,
-                conf);
     }
 
     @Override
@@ -197,7 +194,7 @@ public class FifoScheduler extends AbstractScheduler {
         // Sanity check
         normalizedResourceRequests(ask);
 
-        // Release containers
+        // Release SchedulerUnit
         releaseScheduleUnit(release, application);
 
         synchronized (application) {
@@ -238,7 +235,6 @@ public class FifoScheduler extends AbstractScheduler {
         SchedulerApplication application =
                 new SchedulerApplication(applicationId, user, DEFAULT_QUEUE, context);
         applications.put(applicationId, application);
-        metrics.submitApp(user);
         log.info("Accepted application " + applicationId + " from user: " + user
                 + ", currently num of applications: " + applications.size());
         context.getDolphinDispatcher().getEventProcessor()
@@ -312,48 +308,19 @@ public class FifoScheduler extends AbstractScheduler {
 
     // rack local off_switch
     private int getMaxAllocatableAppWorks(SchedulerApplication application, FicaSchedulerNode node) {
-        PendingAsk offswitchAsk = application.getPendingAsk(schedulerKey,
-                ResourceRequest.ANY);
-        int maxContainers = offswitchAsk.getCount();
-
-        if (type == NodeType.OFF_SWITCH) {
-            return maxContainers;
-        }
-
-        if (type == NodeType.RACK_LOCAL) {
-            PendingAsk rackLocalAsk = application.getPendingAsk(schedulerKey,
-                    node.getRackName());
-            if (rackLocalAsk.getCount() <= 0) {
-                return maxContainers;
-            }
-
-            maxContainers = Math.min(maxContainers,
-                    rackLocalAsk.getCount());
-        }
-
-        if (type == NodeType.NODE_LOCAL) {
-            PendingAsk nodeLocalAsk = application.getPendingAsk(schedulerKey,
-                    node.getRMNode().getHostName());
-
-            if (nodeLocalAsk.getCount() > 0) {
-                maxContainers = Math.min(maxContainers,
-                        nodeLocalAsk.getCount());
-            }
-        }
-
-        return maxContainers;
+        ResourceRequest resourceRequest = application.getPendingAsk();
+        int maxApppWorks = resourceRequest.getNumAppWorks();
+        return maxApppWorks;
     }
 
     private int assignAppWorksOnNode(FicaSchedulerNode node, SchedulerApplication application) {
         // Off-switch
-        int offSwitchContainers =
-                assignOffSwitchContainers(node, application, schedulerKey);
+        int offSwitchContainers = assignOffSwitchContainers(node, application);
 
 
         log.debug("assignContainersOnNode:" +
-                " node=" + node.getRMNode().getNodeAddress() +
+                " node=" + node.getNode().getNodeAddress() +
                 " application=" + application.getApplicationId().getId() +
-                " priority=" + schedulerKey.getPriority() +
                 " #assigned=" + offSwitchContainers);
 
 
@@ -361,34 +328,30 @@ public class FifoScheduler extends AbstractScheduler {
     }
 
     private int assignOffSwitchContainers(FicaSchedulerNode node,
-                                          SchedulerApplication application,
-                                          SchedulerRequestKey schedulerKey) {
+                                          SchedulerApplication application) {
         int assignedContainers = 0;
-        PendingAsk offswitchAsk = application.getPendingAsk(schedulerKey,
-                ResourceRequest.ANY);
-        if (offswitchAsk.getCount() > 0) {
-            assignedContainers =
-                    assignAppWork(node, application, schedulerKey,
-                            offswitchAsk.getCount(),
-                            offswitchAsk.getPerAllocationResource());
+        ResourceRequest resourceRequest = application.getPendingAsk();
+        int maxApppWorks = resourceRequest.getNumAppWorks();
+        if (maxApppWorks > 0) {
+            assignedContainers = assignAppWork(node, application,
+                    maxApppWorks, resourceRequest.getCapability());
         }
         return assignedContainers;
     }
 
-    private int assignAppWork(FicaSchedulerNode node, SchedulerApplication application, int assignableContainers,
+    private int assignAppWork(FicaSchedulerNode node, SchedulerApplication application, int assignableAppWorks,
                               Resource capability) {
         log.debug("assignContainers:" +
                 " node=" + node.getNode().getNodeAddress() +
                 " application=" + application.getApplicationId().getId() +
-                " assignableContainers=" + assignableContainers +
+                " assignableContainers=" + assignableAppWorks +
                 " capability=" + capability);
 
         // TODO: A buggy application with this zero would crash the scheduler.
         int availableAppWorks =
                 (int) (node.getUnAllocatedResource().getMemorySize() /
                         capability.getMemorySize());
-        int assignedAppWorks =
-                Math.min(assignableContainers, availableAppWorks);
+        int assignedAppWorks = Math.min(assignableAppWorks, availableAppWorks);
 
         if (assignedAppWorks > 0) {
             for (int i = 0; i < assignedAppWorks; ++i) {
@@ -426,8 +389,7 @@ public class FifoScheduler extends AbstractScheduler {
     }
 
     private void updateAvailableResourcesMetrics() {
-        metrics.setAvailableResourcesToQueue(
-                Resources.subtract(getClusterResource(), usedResource));
+
     }
 
     @Override

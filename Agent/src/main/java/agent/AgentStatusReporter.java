@@ -1,8 +1,7 @@
 package agent;
 
 import agent.application.Application;
-import common.struct.AppWorkId;
-import common.struct.ApplicationId;
+import common.struct.*;
 import agent.application.ApplicationState;
 import agent.appworkmanage.appwork.AppWork;
 import agent.appworkmanage.appwork.AppWorkState;
@@ -10,7 +9,6 @@ import agent.appworkmanage.monitor.AppWorkMonitor;
 import agent.message.*;
 import agent.status.AgentAction;
 import agent.status.AgentStatus;
-import agent.status.AppWorkStatus;
 import common.event.EventDispatcher;
 import common.exception.DolphinException;
 import common.exception.DolphinRuntimeException;
@@ -18,7 +16,6 @@ import common.resource.Resource;
 import common.resource.ResourceCollector;
 import common.resource.ResourceUtilization;
 import common.service.AbstractService;
-import common.struct.AgentId;
 import common.util.HardwareUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -208,10 +205,10 @@ public class AgentStatusReporter extends AbstractService {
         List<AppWorkStatus> statuses = new ArrayList<>();
 
         for (AppWork appWork : this.context.getAppWorks().values()) {
-            AppWorkId appWorkId = appWork.();
+            AppWorkId appWorkId = appWork.getAppWorkId();
             ApplicationId applicationId = appWork.getAppId();
             AppWorkStatus appWorkStatus = appWork.cloneAndGetAppWorkStatus();
-            if (appWorkStatus.getState() == AppWorkState.DONE) {
+            if (appWorkStatus.getState() == RemoteAppWorkState.COMPLETE) {
 
             }
         }

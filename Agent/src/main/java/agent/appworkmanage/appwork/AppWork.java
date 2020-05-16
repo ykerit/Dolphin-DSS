@@ -3,7 +3,7 @@ package agent.appworkmanage.appwork;
 import common.struct.AppWorkId;
 import common.struct.ApplicationId;
 import common.context.AppWorkLaunchContext;
-import agent.status.AppWorkStatus;
+import common.struct.AppWorkStatus;
 import common.event.EventProcessor;
 import common.resource.Resource;
 import common.struct.AgentId;

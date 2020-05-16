@@ -1,7 +1,7 @@
 package agent.message;
 
 import common.struct.ApplicationId;
-import agent.status.AppWorkStatus;
+import common.struct.AppWorkStatus;
 import common.resource.Resource;
 import common.struct.AgentId;
 import api.MessageID;

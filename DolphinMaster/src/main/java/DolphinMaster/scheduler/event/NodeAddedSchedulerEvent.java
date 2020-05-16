@@ -3,7 +3,7 @@ package DolphinMaster.scheduler.event;
 import DolphinMaster.node.Node;
 import DolphinMaster.scheduler.SchedulerEvent;
 import DolphinMaster.scheduler.SchedulerEventType;
-import agent.status.AppWorkStatus;
+import common.struct.AppWorkStatus;
 
 import java.util.List;
 

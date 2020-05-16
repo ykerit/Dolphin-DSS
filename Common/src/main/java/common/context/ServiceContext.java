@@ -13,8 +13,8 @@ public class ServiceContext {
         return dispatcher;
     }
 
-    public void setDispatcher(EventDispatcher eventDispatcher) {
-        this.dispatcher = eventDispatcher;
+    public void setDispatcher(EventDispatcher specialDispatcher) {
+        this.dispatcher = specialDispatcher;
     }
 
     public ServiceState getStatus() {

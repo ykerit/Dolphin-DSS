@@ -31,6 +31,14 @@ public class ChaosService extends AbstractService  {
         }
     }
 
+    protected boolean addIfService(Object object) {
+        if (object instanceof Service) {
+            addService((Service) object);
+            return true;
+        }
+        return false;
+    }
+
     protected boolean removeService(Service service) {
         log.info("Removing service: " + service.getName());
         synchronized (serviceList) {

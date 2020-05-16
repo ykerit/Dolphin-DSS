@@ -1,12 +1,14 @@
 package DolphinMaster.app;
 
 import DolphinMaster.DolphinContext;
+import DolphinMaster.scheduler.event.AppAddedSchedulerEvent;
 import common.context.ApplicationSubmission;
 import common.event.EventDispatcher;
 import common.event.EventProcessor;
 import common.struct.AgentId;
 import common.struct.ApplicationId;
 import common.struct.Priority;
+import common.struct.RemoteAppWork;
 import common.util.SystemClock;
 import config.Configuration;
 import org.apache.logging.log4j.LogManager;
@@ -39,12 +41,13 @@ public class AppImp implements App {
     private final EventDispatcher dispatcher;
     private final StringBuilder tips = new StringBuilder();
     private final String applicationType;
-    private Map<String, String> applicationEnv = new HashMap<>();
     private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
     private final Lock readLock = readWriteLock.readLock();
     private final Lock writeLock = readWriteLock.writeLock();
     private final long submitTime;
     private final Set<String> applicationTags;
+    private Map<String, String> applicationEnv = new HashMap<>();
+    private RemoteAppWork masterAppWork;
 
     private SystemClock clock;
 
@@ -81,6 +84,7 @@ public class AppImp implements App {
         this.dispatcher = context.getDolphinDispatcher();
         this.processor = dispatcher.getEventProcessor();
         this.applicationTags = applicationTags;
+        this.state = AppState.NEW;
 
         if (startTime <= 0) {
             this.startTime = this.clock.getTime();
@@ -234,8 +238,42 @@ public class AppImp implements App {
         try {
             ApplicationId appId = event.getAppId();
             log.debug("Process event for {} of type {}", appId, event.getType());
+            switch (event.getType()) {
+                case START:
+                    addApplicationToScheduler();
+                    break;
+                case STATUS_UPDATE:
+                    break;
+                case APP_ACCEPTED:
+
+            }
         } finally {
             writeLock.unlock();
+        }
+    }
+
+    @Override
+    public RemoteAppWork getMasterAppWork() {
+        return masterAppWork;
+    }
+
+    @Override
+    public void setMasterAppWork(RemoteAppWork masterAppWork) {
+        this.masterAppWork = masterAppWork;
+    }
+
+    private void addApplicationToScheduler() {
+        processor.process(new AppAddedSchedulerEvent(this.applicationId,
+                this.poolName, this.user, this.applicationPriority));
+    }
+
+    // AppState update will make event
+    private void updateAppState(AppState oldState, AppState newState) {
+        if (oldState.equals(AppState.NEW) && newState.equals(AppState.SUBMITTED)) {
+            // when
+        }
+        if (oldState.equals(AppState.SUBMITTED) && newState.equals(AppState.ACCEPTED)) {
+
         }
     }
 }

@@ -1,18 +1,15 @@
 package agent.appworkmanage.appwork;
 
-import common.struct.AgentId;
-import common.struct.AppWorkId;
-import common.struct.ApplicationId;
+import common.struct.*;
 import common.context.AppWorkLaunchContext;
-import agent.status.AppWorkStatus;
 import common.event.EventDispatcher;
 import common.resource.Resource;
-import common.util.Tools;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
+import java.util.Set;
 
 /* In the future, will support task interrupt and resume
  ** the status represents future;
@@ -58,8 +55,18 @@ public class AppWorkImp implements AppWork {
     }
 
     @Override
+    public void setAgentId(AgentId agentId) {
+
+    }
+
+    @Override
     public AppWorkId getAppWorkId () {
         return null;
+    }
+
+    @Override
+    public void setAppWorkId(AppWorkId appWorkId) {
+
     }
 
     @Override
@@ -75,6 +82,11 @@ public class AppWorkImp implements AppWork {
     @Override
     public Resource getResource() {
         return null;
+    }
+
+    @Override
+    public void setResource(Resource resource) {
+
     }
 
     @Override
@@ -108,8 +120,23 @@ public class AppWorkImp implements AppWork {
     }
 
     @Override
-    public int getPriority() {
-        return 0;
+    public Priority getPriority() {
+        return null;
+    }
+
+    @Override
+    public void setPriority() {
+
+    }
+
+    @Override
+    public Set<String> getAllocationTags() {
+        return null;
+    }
+
+    @Override
+    public void setAllocationTags(Set<String> allocationTags) {
+
     }
 
     @Override

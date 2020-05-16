@@ -1,5 +1,6 @@
 package agent.status;
 
+import common.struct.AppWorkStatus;
 import common.struct.ApplicationId;
 import common.resource.ResourceUtilization;
 import common.struct.AgentId;

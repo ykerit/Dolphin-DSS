@@ -56,5 +56,5 @@ public interface SchedulerUnit extends EventProcessor<SchedulerUnitEvent>, Compa
 
     ApplicationId getApplicationId();
 
-    AppWorkState getAppWorkState();
+    RemoteAppWorkState getAppWorkState();
 }

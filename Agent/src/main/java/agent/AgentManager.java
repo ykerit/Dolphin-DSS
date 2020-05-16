@@ -1,7 +1,6 @@
 package agent;
 
 import agent.appworkmanage.*;
-import common.event.ActionType;
 import common.event.EventDispatcher;
 import common.event.EventProcessor;
 import common.exception.DolphinRuntimeException;
@@ -13,11 +12,10 @@ import org.greatfree.client.StandaloneClient;
 import org.greatfree.exceptions.RemoteReadException;
 
 import java.io.IOException;
-import java.lang.management.ThreadInfo;
 
 public class AgentManager extends ChaosService implements EventProcessor<AgentEvent> {
     private Context context;
-    private EventDispatcher eventDispatcher;
+    private EventDispatcher specialDispatcher;
     private AgentStatusReporter statusReporter;
     private AgentResourceMonitor resourceMonitor;
     private AgentManageMetrics metrics;
@@ -41,16 +39,16 @@ public class AgentManager extends ChaosService implements EventProcessor<AgentEv
             e.printStackTrace();
         }
         // ----------Event Dispatcher---------
-        this.eventDispatcher = new EventDispatcher();
-        addService(this.eventDispatcher);
-        this.context.setAgentDispatcher(this.eventDispatcher);
+        this.specialDispatcher = new EventDispatcher();
+        addService(this.specialDispatcher);
+        this.context.setAgentDispatcher(this.specialDispatcher);
 
         // ----------Agent Metrics ----------
         this.metrics = createMetrics();
         this.context.setMetrics(this.metrics);
 
         // ----------Agent Status Poll Service-------
-        this.statusReporter = createAgentStatusReporterService(context, eventDispatcher, metrics);
+        this.statusReporter = createAgentStatusReporterService(context, specialDispatcher, metrics);
         addService(statusReporter);
         context.setAgentStatusReporter(statusReporter);
 
@@ -75,8 +73,8 @@ public class AgentManager extends ChaosService implements EventProcessor<AgentEv
 
 
         // ----------Event Register-------------
-        this.eventDispatcher.register(AppWorkManagerEventType.class, appWorkManager);
-        this.eventDispatcher.register(AgentEventType.class, this);
+        this.specialDispatcher.register(AppWorkManagerEventType.class, appWorkManager);
+        this.specialDispatcher.register(AgentEventType.class, this);
 
         this.context.getAppWorkExecutor().start();
         this.context.setAgentManager(this);

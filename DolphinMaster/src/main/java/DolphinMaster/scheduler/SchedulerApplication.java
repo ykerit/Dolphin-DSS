@@ -6,8 +6,7 @@ import DolphinMaster.app.AppState;
 import DolphinMaster.node.NodeCleanAppWorkEvent;
 import DolphinMaster.scheduler.fica.FicaSchedulerNode;
 import DolphinMaster.schedulerunit.*;
-import agent.appworkmanage.appwork.AppWork;
-import agent.status.AppWorkStatus;
+import common.struct.AppWorkStatus;
 import api.app_master_message.ResourceRequest;
 import common.context.ApplicationSubmission;
 import common.resource.Resource;
@@ -31,7 +30,6 @@ public class SchedulerApplication {
     protected final Lock writeLock;
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     private final DolphinContext context;
-    protected String appAMNodePartitionName = "";
     private volatile Resource resourceLimit = new Resource(0, 0);
     private final boolean amRunning = false;
     private final ApplicationId applicationId;
@@ -55,6 +53,7 @@ public class SchedulerApplication {
     private final AtomicLong unconfirmedAllocatedMem = new AtomicLong();
     private final AtomicInteger unconfirmedAllocateVCore = new AtomicInteger();
     private final AtomicInteger appWorkIdCounter = new AtomicInteger(0);
+    private List<ResourceRequest> resourceRequests;
 
     public SchedulerApplication(ApplicationId applicationId, String user,
                                 ResourcePool pool, DolphinContext context) {
@@ -270,7 +269,23 @@ public class SchedulerApplication {
     }
 
     public void updateResourceRequests(List<ResourceRequest> resourceRequests) {
+        writeLock.lock();
+        try {
+            if (!isStopped) {
+                this.resourceRequests = resourceRequests;
+            }
+        } finally {
+            writeLock.unlock();
+        }
+    }
 
+    public ResourceRequest getPendingAsk() {
+        readLock.lock();
+        try {
+            return resourceRequests.size() > 0 ? resourceRequests.get(0) : null;
+        } finally {
+            readLock.unlock();
+        }
     }
 
     public void stop(AppState finalAppState) {

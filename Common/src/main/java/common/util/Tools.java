@@ -50,7 +50,7 @@ public class Tools {
     public static String file2String(String path) {
         StringBuilder result = new StringBuilder();
         try {
-            BufferedReader br = new BufferedReader(new FileReader(new File(path)));//构造一个BufferedReader类来读取文件
+            BufferedReader br = new BufferedReader(new FileReader(new File(path)));
             String s = null;
             while ((s = br.readLine()) != null) {
                 result.append(s);

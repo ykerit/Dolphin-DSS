@@ -1,12 +1,12 @@
 package DolphinMaster;
 
+import DolphinMaster.agentmanage.AgentListManage;
 import DolphinMaster.agentmanage.AgentTrackerService;
 import DolphinMaster.app.AMLiveLinessMonitor;
 import DolphinMaster.app.App;
 import DolphinMaster.node.Node;
 import DolphinMaster.scheduler.ResourceScheduler;
 import DolphinMaster.security.SecurityManager;
-import agent.application.Application;
 import common.context.ServiceContext;
 import common.event.EventDispatcher;
 import common.service.ServiceState;
@@ -14,20 +14,16 @@ import common.struct.AgentId;
 import common.struct.ApplicationId;
 import config.Configuration;
 
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 public class DolphinContext implements AppMasterServiceContext {
     private ServiceContext serviceContext;
     private ActiveServiceContext activeServiceContext;
     private DolphinMaster dolphinMaster;
-    private AgentTrackerService agentTrackerService;
-    private SecurityManager securityManager;
 
-
-    public DolphinContext(AMLiveLinessMonitor amLiveLinessMonitor) {
+    public DolphinContext() {
         this.serviceContext = new ServiceContext();
-        this.activeServiceContext = new ActiveServiceContext(amLiveLinessMonitor);
+        this.activeServiceContext = new ActiveServiceContext();
     }
 
     public DolphinContext(EventDispatcher dispatcher, Configuration configuration) {
@@ -68,19 +64,11 @@ public class DolphinContext implements AppMasterServiceContext {
     }
 
     public AgentTrackerService getAgentTrackerService() {
-        return agentTrackerService;
+        return activeServiceContext.getAgentTrackerService();
     }
 
     protected void setAgentTrackerService(AgentTrackerService agentTrackerService) {
-        this.agentTrackerService = agentTrackerService;
-    }
-
-    public SecurityManager getSecurityManager() {
-        return securityManager;
-    }
-
-    public void setSecurityManager(SecurityManager securityManager) {
-        this.securityManager = securityManager;
+        activeServiceContext.setAgentTrackerService(agentTrackerService);
     }
 
     public ConcurrentMap<AgentId, Node> getNodes() {
@@ -95,7 +83,39 @@ public class DolphinContext implements AppMasterServiceContext {
         return activeServiceContext.getAmLiveLinessMonitor();
     }
 
+    public void setAMLiveLinessMonitor(AMLiveLinessMonitor amLiveLinessMonitor) {
+        activeServiceContext.setAmLiveLinessMonitor(amLiveLinessMonitor);
+    }
+
+    public AgentListManage getAgentListManage() {
+        return activeServiceContext.getAgentListManage();
+    }
+
+    public void setAgentListManage(AgentListManage agentListManage) {
+        activeServiceContext.setAgentListManage(agentListManage);
+    }
+
+    public void setScheduler(ResourceScheduler scheduler) {
+        activeServiceContext.setScheduler(scheduler);
+    }
+
     public ResourceScheduler getScheduler() {
-        return this.activeServiceContext.getScheduler();
+        return activeServiceContext.getScheduler();
+    }
+
+    public AppMasterService getAppMasterService() {
+        return activeServiceContext.getAppMasterService();
+    }
+
+    public void setAppMasterService(AppMasterService appMasterService) {
+        activeServiceContext.setAppMasterService(appMasterService);
+    }
+
+    public ClientService getClientService() {
+        return activeServiceContext.getClientService();
+    }
+
+    public void setClientService(ClientService clientService) {
+        this.activeServiceContext.setClientService(clientService);
     }
 }

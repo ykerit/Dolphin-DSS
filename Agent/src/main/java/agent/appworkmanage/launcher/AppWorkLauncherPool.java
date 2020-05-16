@@ -48,7 +48,7 @@ public class AppWorkLauncherPool extends AbstractService implements AbstractAppW
     @Override
     public void process(AppWorkLauncherPoolEvent event) {
         AppWork appWork = event.getAppWork();
-        AppWorkId id = appWork.;
+        AppWorkId id = appWork.getAppWorkId();
         switch (event.getType()) {
             case LAUNCHER_APP_WORK:
                 Application application = context.getApplications().get(appWork.getAppId());

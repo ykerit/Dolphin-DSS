@@ -1,12 +1,18 @@
 package DolphinMaster.security;
 
+import common.service.AbstractService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class SecurityManager {
+public class SecurityManager extends AbstractService {
     private static final Logger log = LogManager.getLogger(SecurityManager.class.getName());
+
+    public SecurityManager() {
+        super(SecurityManager.class.getName());
+    }
+
     public boolean checkExpire(String token) {
         boolean isExpire = false;
         try {

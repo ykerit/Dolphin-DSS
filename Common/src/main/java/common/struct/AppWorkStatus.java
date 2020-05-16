@@ -1,9 +1,4 @@
-package agent.status;
-
-import agent.appworkmanage.appwork.AppWorkState;
-import agent.appworkmanage.appwork.ExitCode;
-import common.struct.AppWorkId;
-import common.struct.RemoteAppWorkState;
+package common.struct;
 
 public class AppWorkStatus {
     private final AppWorkId appWorkId;
