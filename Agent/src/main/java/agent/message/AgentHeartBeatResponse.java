@@ -4,6 +4,7 @@ import agent.appworkmanage.appwork.AppWork;
 import agent.status.AgentAction;
 import api.MessageID;
 import common.resource.Resource;
+import common.struct.AppWorkId;
 import common.struct.ApplicationId;
 import common.struct.RemoteAppWork;
 import org.greatfree.message.ServerMessage;
@@ -16,8 +17,8 @@ public class AgentHeartBeatResponse extends ServerMessage {
     private String masterToken;
     private String tips;
 
-    private List<String> appWorksToCleanup;
-    private List<String> appWorksToBeRemoved;
+    private List<AppWorkId> appWorksToCleanup;
+    private List<AppWorkId> appWorksToBeRemoved;
     private List<ApplicationId> applicationsToCleanup;
     private List<RemoteAppWork> appWorksToUpdate;
     private List<RemoteAppWork> appWorksToDecrease;
@@ -56,19 +57,19 @@ public class AgentHeartBeatResponse extends ServerMessage {
         this.tips = tips;
     }
 
-    public List<String> getAppWorksToCleanup() {
+    public List<AppWorkId> getAppWorksToCleanup() {
         return appWorksToCleanup;
     }
 
-    public void setAppWorksToCleanup(List<String> appWorksToCleanup) {
+    public void setAppWorksToCleanup(List<AppWorkId> appWorksToCleanup) {
         this.appWorksToCleanup = appWorksToCleanup;
     }
 
-    public List<String> getAppWorksToBeRemoved() {
+    public List<AppWorkId> getAppWorksToBeRemoved() {
         return appWorksToBeRemoved;
     }
 
-    public void setAppWorksToBeRemoved(List<String> appWorksToBeRemoved) {
+    public void setAppWorksToBeRemoved(List<AppWorkId> appWorksToBeRemoved) {
         this.appWorksToBeRemoved = appWorksToBeRemoved;
     }
 

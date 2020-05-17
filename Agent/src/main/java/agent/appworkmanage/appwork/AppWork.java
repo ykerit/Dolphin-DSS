@@ -10,6 +10,8 @@ import common.struct.AgentId;
 import common.struct.Priority;
 
 import java.nio.file.Path;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public interface AppWork extends EventProcessor<AppWorkEvent> {
@@ -32,7 +34,6 @@ public interface AppWork extends EventProcessor<AppWorkEvent> {
     Set<String> getAllocationTags();
 
     void setAllocationTags(Set<String> allocationTags);
-
 
     ApplicationId getAppId();
 
@@ -65,4 +66,6 @@ public interface AppWork extends EventProcessor<AppWorkEvent> {
     boolean isRecovering();
 
     AppWorkStatus cloneAndGetAppWorkStatus();
+
+    Map<Path, List<String>> getLocalizeResource();
 }

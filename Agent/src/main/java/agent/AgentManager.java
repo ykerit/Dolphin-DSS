@@ -15,7 +15,7 @@ import java.io.IOException;
 
 public class AgentManager extends ChaosService implements EventProcessor<AgentEvent> {
     private Context context;
-    private EventDispatcher specialDispatcher;
+    private EventDispatcher dispatcher;
     private AgentStatusReporter statusReporter;
     private AgentResourceMonitor resourceMonitor;
     private AgentManageMetrics metrics;
@@ -39,16 +39,16 @@ public class AgentManager extends ChaosService implements EventProcessor<AgentEv
             e.printStackTrace();
         }
         // ----------Event Dispatcher---------
-        this.specialDispatcher = new EventDispatcher();
-        addService(this.specialDispatcher);
-        this.context.setAgentDispatcher(this.specialDispatcher);
+        this.dispatcher = new EventDispatcher("Agent Manager Dispatcher");
+        addService(this.dispatcher);
+        this.context.setAgentDispatcher(this.dispatcher);
 
         // ----------Agent Metrics ----------
         this.metrics = createMetrics();
         this.context.setMetrics(this.metrics);
 
         // ----------Agent Status Poll Service-------
-        this.statusReporter = createAgentStatusReporterService(context, specialDispatcher, metrics);
+        this.statusReporter = createAgentStatusReporterService(context, dispatcher, metrics);
         addService(statusReporter);
         context.setAgentStatusReporter(statusReporter);
 
@@ -73,8 +73,8 @@ public class AgentManager extends ChaosService implements EventProcessor<AgentEv
 
 
         // ----------Event Register-------------
-        this.specialDispatcher.register(AppWorkManagerEventType.class, appWorkManager);
-        this.specialDispatcher.register(AgentEventType.class, this);
+        this.dispatcher.register(AppWorkManagerEventType.class, appWorkManager);
+        this.dispatcher.register(AgentEventType.class, this);
 
         this.context.getAppWorkExecutor().start();
         this.context.setAgentManager(this);

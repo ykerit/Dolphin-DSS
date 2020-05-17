@@ -32,6 +32,7 @@ public class ClientCLI {
             commander.usage();
             return;
         }
+        client.submitApplication(exe, type, mainClass, 1);
     }
 
 }

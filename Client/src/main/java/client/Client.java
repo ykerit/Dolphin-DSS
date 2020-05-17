@@ -1,8 +1,11 @@
 package client;
 
 import com.ceph.rados.exceptions.RadosException;
+import common.context.AppWorkLaunchContext;
 import common.context.ApplicationSubmission;
+import common.resource.Resource;
 import common.service.ChaosService;
+import common.struct.Priority;
 import common.util.CephService;
 import common.util.RadosFileOperation;
 import config.Configuration;
@@ -63,19 +66,29 @@ public class Client extends ChaosService {
                 configuration.getDolphinMasterClientHost().getPort(), new ApplicationIDRequest());
     }
 
-    public SubmitApplicationResponse submitApplication(String applicationPath, String user, String group, int priority, AppMasterSpec spec)
+    public SubmitApplicationResponse submitApplication(String applicationPath, String type, String name, int priority)
             throws IOException, RemoteReadException, ClassNotFoundException {
         ApplicationIDResponse response = getApplicationID();
-        String applicationName = null;
-        try {
-            RadosFileOperation operation = new RadosFileOperation(this.cephService.getIoContext("rbd"));
-            log.debug("application: {}", applicationName);
-        } catch (RadosException e) {
-            e.printStackTrace();
-        }
-        SubmitApplicationRequest request = new SubmitApplicationRequest(
-        return (SubmitApplicationResponse) StandaloneClient.CS().read(configuration.getDolphinMasterClientHost().getIP(),
+        int last = applicationPath.lastIndexOf('/');
+//        try {
+//            RadosFileOperation operation = new RadosFileOperation(this.cephService.getIoContext("rbd"));
+//            log.debug("application: {}", applicationName);
+//        } catch (RadosException e) {
+//            e.printStackTrace();
+//        }
+        ApplicationSubmission applicationSubmission =
+                new ApplicationSubmission(response.getApplicationId(),
+                        name,
+                        Priority.newInstance(priority),
+                        "default",
+                        "yker",
+                        type,
+                        Resource.newInstance(100, 2),
+                        null,
+                        new AppWorkLaunchContext(null, null, null, null));
+        SubmitApplicationRequest request = new SubmitApplicationRequest(applicationSubmission, response.getApplicationId());
+        SubmitApplicationResponse submitApplicationResponse = (SubmitApplicationResponse) StandaloneClient.CS().read(configuration.getDolphinMasterClientHost().getIP(),
                 configuration.getDolphinMasterClientHost().getPort(), request);
+        return submitApplicationResponse;
     }
-
 }

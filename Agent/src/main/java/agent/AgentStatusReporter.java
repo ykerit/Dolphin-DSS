@@ -1,6 +1,7 @@
 package agent;
 
 import agent.application.Application;
+import agent.appworkmanage.appwork.AppWorkImp;
 import common.struct.*;
 import agent.application.ApplicationState;
 import agent.appworkmanage.appwork.AppWork;
@@ -43,8 +44,10 @@ public class AgentStatusReporter extends AbstractService {
     private Map<ApplicationId, Long> appTokenKeepAliveMap = new HashMap<>();
 
     // AppWork
-    private final Map<String, Long> recentlyStoppedAppWork;
+    private final Map<AppWorkId, Long> recentlyStoppedAppWork;
     private final Map<AppWorkId, AppWorkStatus> pendingCompleteAppWork;
+    private final static long DURATION_TO_TRACK_STOPPED_APP_WORK = 600000;
+    private Set<AppWorkId> pendingAppWorksToRemove = new HashSet<>();
 
     // status manage
     private Thread statusReporter;
@@ -115,6 +118,45 @@ public class AgentStatusReporter extends AbstractService {
             return true;
         } else {
             return false;
+        }
+    }
+
+    public boolean isAppWorkRecentlyStopped(AppWorkId appWorkId) {
+        synchronized (recentlyStoppedAppWork) {
+            return recentlyStoppedAppWork.containsKey(appWorkId);
+        }
+    }
+
+    public void clearFinishedAppWorks() {
+        synchronized (recentlyStoppedAppWork) {
+            recentlyStoppedAppWork.clear();
+        }
+    }
+
+    public void removeVeryOldStoppedAppWorks() {
+        synchronized (recentlyStoppedAppWork) {
+            long currentTime = System.currentTimeMillis();
+            Iterator<Map.Entry<AppWorkId, Long>> iterator = recentlyStoppedAppWork.entrySet().iterator();
+            while (iterator.hasNext()) {
+                Map.Entry<AppWorkId, Long> entry = iterator.next();
+                AppWorkId appWorkId = entry.getKey();
+                if (entry.getValue() < currentTime) {
+                    if (context.getAppWorks().containsKey(appWorkId)) {
+                        iterator.remove();
+                    }
+                } else {
+                    break;
+                }
+            }
+        }
+    }
+
+    public void addCompletedAppWork(AppWorkId appWorkId) {
+        synchronized (recentlyStoppedAppWork) {
+            removeVeryOldStoppedAppWorks();
+            if (!recentlyStoppedAppWork.containsKey(appWorkId)) {
+                recentlyStoppedAppWork.put(appWorkId, System.currentTimeMillis() + DURATION_TO_TRACK_STOPPED_APP_WORK);
+            }
         }
     }
 
@@ -216,6 +258,7 @@ public class AgentStatusReporter extends AbstractService {
         return runningApps;
     }
 
+    // Remote AppWork status
     protected List<AppWorkStatus> getAppWorkStatuses() {
         List<AppWorkStatus> statuses = new ArrayList<>();
 
@@ -230,21 +273,26 @@ public class AgentStatusReporter extends AbstractService {
                     context.getAppWorks().remove(appWorkId);
                     pendingCompleteAppWork.put(appWorkId, appWorkStatus);
                 } else {
-                    if ()
+                    if (!isAppWorkRecentlyStopped(appWorkId)) {
+                        pendingCompleteAppWork.put(appWorkId, appWorkStatus);
+                    }
                 }
+                addCompletedAppWork(appWorkId);
+            } else {
+                statuses.add(appWorkStatus);
             }
         }
-
+        statuses.addAll(pendingCompleteAppWork.values());
         return statuses;
     }
 
     protected AgentStatus getAgentStatus() {
         List<AppWorkStatus> appWorkStatuses = getAppWorkStatuses();
         ResourceUtilization agentUtilization = getAgentUtilization();
-//        ResourceUtilization appWorkUtilization = getAppWorkUtilization();
+        ResourceUtilization appWorkUtilization = getAppWorkUtilization();
         AgentStatus status = new AgentStatus(agentId,
                 appWorkStatuses, createKeepAliveApplicationList(),
-                null, agentUtilization);
+                appWorkUtilization, agentUtilization);
         return status;
     }
 
@@ -260,6 +308,27 @@ public class AgentStatusReporter extends AbstractService {
             return true;
         }
         return false;
+    }
+
+    public void removeOrTrackCompletedAppWorks(List<AppWorkId> appWorkIds) {
+        Set<AppWorkId> removedAppWorks = new HashSet<>();
+        pendingAppWorksToRemove.addAll(appWorkIds);
+        Iterator<AppWorkId> iterator = pendingAppWorksToRemove.iterator();
+        while (iterator.hasNext()) {
+            AppWorkId appWorkId = iterator.next();
+            AppWork appWork = context.getAppWorks().get(appWorkId);
+            if (appWork == null) {
+                iterator.remove();
+            } else if (appWork.getAppWorkState().equals(AppWorkState.DONE)){
+                context.getAppWorks().remove(appWorkId);
+                removedAppWorks.addAll(appWorkIds);
+                iterator.remove();
+            }
+        }
+        if (!removedAppWorks.isEmpty()) {
+            log.info("Removed AppWorks from context: ", removedAppWorks);
+        }
+        pendingAppWorksToRemove.clear();
     }
 
 
@@ -280,7 +349,21 @@ public class AgentStatusReporter extends AbstractService {
                     updateToken(response);
 
                     if (!processActionCommand(response)) {
+                        removeOrTrackCompletedAppWorks(response.getAppWorksToBeRemoved());
+                        List<AppWorkId> appWorkToBeCleanup = response.getAppWorksToCleanup();
+                        if (appWorkToBeCleanup != null) {
+                            dispatcher.getEventProcessor().process(new CompletedAppWorksEvent(appWorkToBeCleanup));
+                        }
 
+                        List<ApplicationId> appToCleanup = response.getApplicationsToCleanup();
+                        if (appToCleanup != null) {
+                            dispatcher.getEventProcessor().process(new CompletedAppsEvent(appToCleanup));
+                        }
+
+                        List<RemoteAppWork> appWorkToUpdate = response.getAppWorksToUpdate();
+                        if (appWorkToUpdate != null) {
+                            dispatcher.getEventProcessor().process(new UpdateAppWorksEvent(appWorkToUpdate));
+                        }
                     }
                 } catch (Exception e) {
                     log.error("Agent Heartbeat send error");
