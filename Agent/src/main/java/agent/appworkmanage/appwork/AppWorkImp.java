@@ -9,6 +9,8 @@ import org.apache.logging.log4j.Logger;
 
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /* In the future, will support task interrupt and resume
@@ -171,6 +173,11 @@ public class AppWorkImp implements AppWork {
 
     @Override
     public AppWorkStatus cloneAndGetAppWorkStatus() {
+        return null;
+    }
+
+    @Override
+    public Map<Path, List<String>> getLocalizeResource() {
         return null;
     }
 
