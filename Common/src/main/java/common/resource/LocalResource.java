@@ -1,8 +1,9 @@
 package common.resource;
 
+import java.io.Serializable;
 import java.net.URL;
 
-public class LocalResource {
+public class LocalResource implements Serializable {
     private URL resource;
     private LocalResourceType type;
     private long resourceSize;

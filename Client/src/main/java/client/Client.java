@@ -19,6 +19,9 @@ import org.greatfree.client.StandaloneClient;
 import org.greatfree.exceptions.RemoteReadException;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Client extends ChaosService {
     private static final Logger log = LogManager.getLogger(Client.class.getName());
@@ -39,8 +42,8 @@ public class Client extends ChaosService {
             e.printStackTrace();
         }
 
-        this.cephService = new CephService(configuration);
-        addService(this.cephService);
+//        this.cephService = new CephService(configuration);
+//        addService(this.cephService);
         super.serviceInit();
     }
 
@@ -76,6 +79,10 @@ public class Client extends ChaosService {
 //        } catch (RadosException e) {
 //            e.printStackTrace();
 //        }
+        Map<String, String> env = new HashMap<>();
+        env.put("run", "kk");
+        AppWorkLaunchContext appWorkLaunchContext =
+                new AppWorkLaunchContext(new HashMap<>(), env, new ArrayList<>(), null);
         ApplicationSubmission applicationSubmission =
                 new ApplicationSubmission(response.getApplicationId(),
                         name,
@@ -85,7 +92,7 @@ public class Client extends ChaosService {
                         type,
                         Resource.newInstance(100, 2),
                         null,
-                        new AppWorkLaunchContext(null, null, null, null));
+                        appWorkLaunchContext);
         SubmitApplicationRequest request = new SubmitApplicationRequest(applicationSubmission, response.getApplicationId());
         SubmitApplicationResponse submitApplicationResponse = (SubmitApplicationResponse) StandaloneClient.CS().read(configuration.getDolphinMasterClientHost().getIP(),
                 configuration.getDolphinMasterClientHost().getPort(), request);

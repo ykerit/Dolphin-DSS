@@ -85,6 +85,7 @@ public class AppImp implements App {
         this.processor = dispatcher.getEventProcessor();
         this.applicationTags = applicationTags;
         this.state = AppState.NEW;
+        this.clock = SystemClock.getInstance();
 
         if (startTime <= 0) {
             this.startTime = this.clock.getTime();

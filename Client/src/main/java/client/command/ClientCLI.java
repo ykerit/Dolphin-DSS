@@ -32,7 +32,9 @@ public class ClientCLI {
             commander.usage();
             return;
         }
+        System.out.println("exe: " + exe);
+        System.out.println("type: " + type);
+        System.out.println("name: " + mainClass);
         client.submitApplication(exe, type, mainClass, 1);
     }
-
 }

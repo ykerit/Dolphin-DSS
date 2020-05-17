@@ -89,7 +89,7 @@ public class ClientService extends AbstractService {
         ApplicationSubmission submission = request.getSubmission();
         ApplicationId applicationId = request.getApplicationId();
 
-        String user = null;
+        String user = submission.getUser();
 
         if (context.getApps().get(applicationId) != null) {
             log.info("This application is submitted: " + applicationId);

@@ -30,7 +30,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 public class DolphinMaster extends ChaosService {
-    private static long clusterTimestamp = System.currentTimeMillis();
+    public static long clusterTimestamp = System.currentTimeMillis();
     private static final Logger log = LogManager.getLogger(DolphinMaster.class);
 
     private ActiveService activeService;

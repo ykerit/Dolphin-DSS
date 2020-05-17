@@ -100,12 +100,6 @@ public class ApplicationManager implements EventProcessor<ApplicationManagerEven
                                            String user, long startTime) throws DolphinException {
         ApplicationId applicationId = submission.getApplicationId();
         String poolName = submission.getPool();
-        ResourcePoolImp pool = ((FairScheduler) scheduler).getPoolManager().getPool(poolName);
-        while (pool == null) {
-            int sepIndex = poolName.lastIndexOf(".");
-            poolName = poolName.substring(0, sepIndex);
-            pool = ((FairScheduler) scheduler).getPoolManager().getPool(poolName);
-        }
         log.debug("application can submit the pool: " + poolName);
         AppImp application = new AppImp(applicationId,
                 context, configuration,
