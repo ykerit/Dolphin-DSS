@@ -44,7 +44,7 @@ public class AgentStatusReporter extends AbstractService {
 
     // AppWork
     private final Map<String, Long> recentlyStoppedAppWork;
-    private final Map<String, AppWorkState> pendingCompleteAppWork;
+    private final Map<AppWorkId, AppWorkStatus> pendingCompleteAppWork;
 
     // status manage
     private Thread statusReporter;
@@ -101,6 +101,21 @@ public class AgentStatusReporter extends AbstractService {
         }
         this.shutdown = true;
         super.serviceStop();
+    }
+
+    private boolean isApplicationStopped(ApplicationId applicationId) {
+        if (!this.context.getApplications().containsKey(applicationId)) {
+            return true;
+        }
+        ApplicationState applicationState = this.context.
+                getApplications().get(applicationId).getAppState();
+        if (applicationState == ApplicationState.FINISHING_APP_WORKS_WAIT
+        || applicationState == ApplicationState.APPLICATION_RESOURCES_CLEANINGUP
+        || applicationState == ApplicationState.FINISHED) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     protected void registerWithDolphinMaster() throws IOException, DolphinException, RemoteReadException, ClassNotFoundException {
@@ -209,7 +224,14 @@ public class AgentStatusReporter extends AbstractService {
             ApplicationId applicationId = appWork.getAppId();
             AppWorkStatus appWorkStatus = appWork.cloneAndGetAppWorkStatus();
             if (appWorkStatus.getState() == RemoteAppWorkState.COMPLETE) {
-
+                if (isApplicationStopped(applicationId)) {
+                    log.debug("{} is completing, remove {} from agent context",
+                            applicationId, appWorkId);
+                    context.getAppWorks().remove(appWorkId);
+                    pendingCompleteAppWork.put(appWorkId, appWorkStatus);
+                } else {
+                    if ()
+                }
             }
         }
 
