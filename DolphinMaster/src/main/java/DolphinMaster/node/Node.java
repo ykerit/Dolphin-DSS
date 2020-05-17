@@ -5,6 +5,7 @@ import agent.message.AgentHeartBeatResponse;
 import common.resource.Resource;
 import common.resource.ResourceUtilization;
 import common.struct.AgentId;
+import common.struct.AppWorkId;
 import common.struct.ApplicationId;
 import common.struct.RemoteAppWork;
 
@@ -40,7 +41,7 @@ public interface Node {
 
     List<ApplicationId> getRunningApps();
 
-    List<String> getAppWorkToCleanup();
+    List<AppWorkId> getAppWorkToCleanup();
 
     void setAndUpdateAgentHeartbeatResponse(AgentHeartBeatResponse response);
 

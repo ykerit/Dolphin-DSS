@@ -3,13 +3,10 @@ package DolphinMaster.node;
 
 import DolphinMaster.DolphinContext;
 import agent.message.AgentHeartBeatResponse;
-import common.struct.AppWorkStatus;
+import common.struct.*;
 import common.event.EventProcessor;
 import common.resource.Resource;
 import common.resource.ResourceUtilization;
-import common.struct.AgentId;
-import common.struct.ApplicationId;
-import common.struct.RemoteAppWork;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -33,16 +30,16 @@ public class NodeImp implements Node, EventProcessor<NodeEvent> {
     private final DolphinContext context;
     private final String hostName;
     private final String nodeAddress;
-    private final Set<String> launchedAppWorks = new HashSet<>();
-    private final Set<String> completedAppWorks = new HashSet<>();
-    private final Set<String> appWorksToClean = new TreeSet<>();
-    private final Set<String> appWorksToBeRemovedFromAgent = new HashSet<>();
+    private final Set<AppWorkId> launchedAppWorks = new HashSet<>();
+    private final Set<AppWorkId> completedAppWorks = new HashSet<>();
+    private final Set<AppWorkId> appWorksToClean = new TreeSet<>();
+    private final Set<AppWorkId> appWorksToBeRemovedFromAgent = new HashSet<>();
     private final List<ApplicationId> finishedApplications = new ArrayList<>();
     private final List<ApplicationId> runningApplication = new ArrayList<>();
-    private final Map<String, RemoteAppWork> toBeUpdateAppWorks = new HashMap<>();
-    private final Map<String, AppWorkStatus> updateExistAppWorks = new HashMap<>();
-    private final Map<String, RemoteAppWork> toBeDecreasedAppWorks = new HashMap<>();
-    private final Map<String, RemoteAppWork> reportedIncreasedAppWorks = new HashMap<>();
+    private final Map<AppWorkId, RemoteAppWork> toBeUpdateAppWorks = new HashMap<>();
+    private final Map<AppWorkId, AppWorkStatus> updateExistAppWorks = new HashMap<>();
+    private final Map<AppWorkId, RemoteAppWork> toBeDecreasedAppWorks = new HashMap<>();
+    private final Map<AppWorkId, RemoteAppWork> reportedIncreasedAppWorks = new HashMap<>();
     // use for AM
     private int commandPort;
     // snapshot for total resource
@@ -163,7 +160,7 @@ public class NodeImp implements Node, EventProcessor<NodeEvent> {
     }
 
     @Override
-    public List<String> getAppWorkToCleanup() {
+    public List<AppWorkId> getAppWorkToCleanup() {
         readLock.lock();
         try {
             return new ArrayList<>(appWorksToClean);
