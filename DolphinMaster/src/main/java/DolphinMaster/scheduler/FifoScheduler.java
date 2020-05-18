@@ -87,19 +87,16 @@ public class FifoScheduler extends AbstractScheduler {
 
         @Override
         public Priority getApplicationPriority() {
-            // TODO add implementation for FIFO scheduler
             return null;
         }
 
         @Override
         public void incReserveResource(String partition, Resource reservedRes) {
-            // TODO add implementation for FIFO scheduler
 
         }
 
         @Override
         public void decReserveResource(String partition, Resource reservedRes) {
-            // TODO add implementation for FIFO scheduler
 
         }
     };

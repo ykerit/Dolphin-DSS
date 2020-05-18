@@ -1,6 +1,7 @@
 package agent.appworkmanage;
 
 import agent.Context;
+import agent.appworkmanage.appwork.AppWork;
 import agent.appworkmanage.cgroups.ResourceHandler;
 import agent.appworkmanage.cgroups.ResourceHandlerPackage;
 import agent.appworkmanage.runtime.AppWorkExecutionException;
@@ -13,10 +14,12 @@ import common.Privileged.PrivilegedOperation;
 import common.Privileged.PrivilegedOperationException;
 import common.Privileged.PrivilegedOperationExecutor;
 import common.exception.ResourceHandleException;
+import common.struct.AppWorkId;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -37,7 +40,15 @@ public class AppWorkExecutorImp extends AppWorkExecutor {
     @Override
     public void init(Context context) throws IOException {
         this.context = context;
-
+            PrivilegedOperation checkSetupOp = new PrivilegedOperation(PrivilegedOperation.
+                    OperationType.CHECK_SETUP);
+            PrivilegedOperationExecutor privilegedOperationExecutor = getPrivilegedOperationExecutor();
+        try {
+            privilegedOperationExecutor.executePrivilegedOperation(checkSetupOp, false);
+        } catch (PrivilegedOperationException e) {
+            int exitCode = e.getExitCode();
+          log.warn("Exit code from AppWork executor initialize is {}", exitCode);
+        }
         try {
             resourceHandlerCenter = ResourceHandlerPackage.getResourceHandlerCenter(context.getConfiguration(), context);
             if (resourceHandlerCenter != null) {
@@ -106,7 +117,23 @@ public class AppWorkExecutorImp extends AppWorkExecutor {
 
     @Override
     public int launchAppWork(AppWorkStartContext ctx) {
-        return 0;
+        AppWork appWork = ctx.getAppWork();
+        String user = ctx.getUser();
+        AppWorkId appWorkId = appWork.getAppWorkId();
+
+        if (resourceHandlerCenter != null) {
+            try {
+                List<PrivilegedOperation> ops = resourceHandlerCenter.preStart(appWork);
+                if (ops != null) {
+                    List<PrivilegedOperation> resourceOps = new ArrayList<>();
+                    resourceOps.add(new PrivilegedOperation(
+                            PrivilegedOperation.OperationType.ADD_PID_TO_CGROUP,"" ));
+                }
+            } catch (ResourceHandleException e) {
+
+            }
+        }
+
     }
 
     @Override
@@ -134,7 +161,4 @@ public class AppWorkExecutorImp extends AppWorkExecutor {
         return false;
     }
 
-    private int handleLaunchForLaunchType(AppWorkStartContext ctx) {
-        return 0;
-    }
 }

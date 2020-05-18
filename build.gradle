@@ -24,6 +24,8 @@ subprojects {
     	compile group: 'org.reflections', name: 'reflections', version: '0.9.12'
 
         compile group: 'io.dropwizard.metrics', name: 'metrics-core', version: '4.1.0'
+
+        compile group: 'org.squirrelframework', name: 'squirrel-foundation', version: '0.3.8'
     }
 }
 

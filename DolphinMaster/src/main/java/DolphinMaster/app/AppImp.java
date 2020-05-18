@@ -13,6 +13,12 @@ import common.util.SystemClock;
 import config.Configuration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.squirrelframework.foundation.fsm.StateMachineBuilderFactory;
+import org.squirrelframework.foundation.fsm.UntypedStateMachine;
+import org.squirrelframework.foundation.fsm.UntypedStateMachineBuilder;
+import org.squirrelframework.foundation.fsm.annotation.StateMachineDefinition;
+import org.squirrelframework.foundation.fsm.annotation.StateMachineParameters;
+import org.squirrelframework.foundation.fsm.impl.AbstractUntypedStateMachine;
 
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -60,6 +66,10 @@ public class AppImp implements App {
     private Priority applicationPriority;
     private EventProcessor processor;
     private AppState state;
+
+    private UntypedStateMachineBuilder builder =
+            StateMachineBuilderFactory.create(AppStateMachine.class);
+
 
     public AppImp(ApplicationId applicationId,
                   DolphinContext context,
@@ -276,5 +286,10 @@ public class AppImp implements App {
         if (oldState.equals(AppState.SUBMITTED) && newState.equals(AppState.ACCEPTED)) {
 
         }
+    }
+
+    @StateMachineParameters(stateType = AppState.class, eventType = AppEventType.class, contextType = AppImp.class)
+    static class AppStateMachine extends AbstractUntypedStateMachine {
+
     }
 }
