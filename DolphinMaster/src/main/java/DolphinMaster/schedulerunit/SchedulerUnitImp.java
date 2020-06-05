@@ -1,13 +1,21 @@
 package DolphinMaster.schedulerunit;
 
 import DolphinMaster.DolphinContext;
-import agent.appworkmanage.appwork.AppWorkState;
+import DolphinMaster.app.AppEvent;
+import DolphinMaster.app.AppEventType;
 import common.struct.AppWorkStatus;
 import common.event.EventProcessor;
 import common.resource.Resource;
 import common.struct.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.squirrelframework.foundation.component.SquirrelProvider;
+import org.squirrelframework.foundation.fsm.DotVisitor;
+import org.squirrelframework.foundation.fsm.StateMachineBuilderFactory;
+import org.squirrelframework.foundation.fsm.UntypedStateMachine;
+import org.squirrelframework.foundation.fsm.UntypedStateMachineBuilder;
+import org.squirrelframework.foundation.fsm.annotation.StateMachineParameters;
+import org.squirrelframework.foundation.fsm.impl.AbstractUntypedStateMachine;
 
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
@@ -20,8 +28,8 @@ public class SchedulerUnitImp implements SchedulerUnit {
     private final Lock writeLock;
     private final ApplicationId applicationId;
     private final AgentId agentId;
-    private final DolphinContext dolphinContext;
-    private final EventProcessor eventProcessor;
+    private final DolphinContext context;
+    private final EventProcessor processor;
     private final String user;
 
     private volatile RemoteAppWork appWork;
@@ -35,6 +43,8 @@ public class SchedulerUnitImp implements SchedulerUnit {
     private Resource lastConfirmeResource;
     private volatile String poolName;
     private volatile Set<String> allocateTags = null;
+    private final UntypedStateMachineBuilder schedulerUnitStateMachineBuilder;
+    private final UntypedStateMachine schedulerUnitStateMachine;
 
     public SchedulerUnitImp(RemoteAppWork appWork, ApplicationId applicationId,
                             AgentId agentId, String user,
@@ -43,14 +53,52 @@ public class SchedulerUnitImp implements SchedulerUnit {
         this.appWork = appWork;
         this.applicationId = applicationId;
         this.user = user;
-        this.dolphinContext = context;
-        this.eventProcessor = this.dolphinContext.getDolphinDispatcher().getEventProcessor();
+        this.context = context;
+        this.processor = this.context.getDolphinDispatcher().getEventProcessor();
         this.isAMAppWork = false;
         this.createTime = System.currentTimeMillis();
 
         ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock();
         this.readLock = readWriteLock.readLock();
         this.writeLock = readWriteLock.writeLock();
+
+        schedulerUnitStateMachineBuilder = StateMachineBuilderFactory
+                .create(SchedulerUnitImp.AppStateMachine.class);
+
+        schedulerUnitStateMachineBuilder.externalTransition()
+                .from(SchedulerUnitState.NEW)
+                .to(SchedulerUnitState.ALLOCATED)
+                .on(SchedulerUnitEventType.START)
+                .callMethod("sendAppWorkAllocated");
+
+        schedulerUnitStateMachineBuilder.externalTransition()
+                .from(SchedulerUnitState.ALLOCATED)
+                .to(SchedulerUnitState.ACQUIRED)
+                .on(SchedulerUnitEventType.ACQUIRED);
+
+        schedulerUnitStateMachineBuilder.externalTransition()
+                .from(SchedulerUnitState.ACQUIRED)
+                .to(SchedulerUnitState.RUNNING)
+                .on(SchedulerUnitEventType.LAUNCHED);
+
+        schedulerUnitStateMachineBuilder.externalTransition()
+                .from(SchedulerUnitState.RUNNING)
+                .to(SchedulerUnitState.COMPLETED)
+                .on(SchedulerUnitEventType.FINISHED);
+
+        schedulerUnitStateMachineBuilder.externalTransition()
+                .from(SchedulerUnitState.RUNNING)
+                .to(SchedulerUnitState.RELEASED)
+                .on(SchedulerUnitEventType.RELEASED);
+
+        schedulerUnitStateMachine = schedulerUnitStateMachineBuilder
+                .newStateMachine(SchedulerUnitState.NEW);
+
+
+
+        DotVisitor visitor = SquirrelProvider.getInstance().newInstance(DotVisitor.class);
+        schedulerUnitStateMachine.accept(visitor);
+        visitor.convertDotFile("/Users/yuankai/schedulerUnitStateMachine");
     }
 
     @Override
@@ -245,12 +293,10 @@ public class SchedulerUnitImp implements SchedulerUnit {
 
     @Override
     public void process(SchedulerUnitEvent event) {
-        log.debug("Processing {} of type {}", event.getAppWorkId(), event.getType());
         writeLock.lock();
         try {
-            switch (event.getType()) {
-
-            }
+            log.debug("Process event for {} of type {}", event.getAppWorkId(), event.getType());
+            schedulerUnitStateMachine.fire(event.getType(), this);
         } finally {
             writeLock.unlock();
         }
@@ -262,5 +308,13 @@ public class SchedulerUnitImp implements SchedulerUnit {
             return getAppWorkId().compareTo(o.getAppWorkId());
         }
         return -1;
+    }
+
+    @StateMachineParameters(stateType = SchedulerUnitState.class, eventType = SchedulerUnitEventType.class, contextType = SchedulerUnitImp.class)
+    static class AppStateMachine extends AbstractUntypedStateMachine {
+
+        protected void sendAppWorkAllocated(SchedulerUnitState from, SchedulerUnitState to, SchedulerUnitEventType type, SchedulerUnitImp schedulerUnitImp) {
+            schedulerUnitImp.processor.process(new AppEvent(schedulerUnitImp.applicationId, AppEventType.APP_WORK_ALLOCATE));
+        }
     }
 }

@@ -6,6 +6,8 @@ import DolphinMaster.AppManager.ApplicationManagerEventType;
 import DolphinMaster.agentmanage.AgentListManage;
 import DolphinMaster.agentmanage.AgentLivelinessMonitor;
 import DolphinMaster.agentmanage.AgentTrackerService;
+import DolphinMaster.amlauncher.AMLauncherEventType;
+import DolphinMaster.amlauncher.AppMasterLauncher;
 import DolphinMaster.app.AMLiveLinessMonitor;
 import DolphinMaster.app.App;
 import DolphinMaster.app.AppEvent;
@@ -108,6 +110,7 @@ public class DolphinMaster extends ChaosService {
     public class ActiveService extends ChaosService {
         private DolphinMaster dolphinMaster;
         private EventProcessor<SchedulerEvent> schedulerDispatcher;
+        private AppMasterLauncher appMasterLauncher;
 
         public ActiveService(DolphinMaster dolphinMaster) {
             super(ActiveService.class.getName());
@@ -156,6 +159,10 @@ public class DolphinMaster extends ChaosService {
             clientService = createClientService();
             addService(clientService);
             dolphinContext.setClientService(clientService);
+
+            appMasterLauncher = createAMLauncher();
+            dolphinDispatcher.register(AMLauncherEventType.class, appMasterLauncher);
+            addService(appMasterLauncher);
 
             super.serviceInit();
         }
@@ -219,6 +226,10 @@ public class DolphinMaster extends ChaosService {
     private AgentTrackerService createAgentTrackerService() {
         return new AgentTrackerService(this.dolphinContext, this.agentLivelinessMonitor,
                 this.agentListManage, this.securityManagerService);
+    }
+
+    private AppMasterLauncher createAMLauncher() {
+        return new AppMasterLauncher(this.dolphinContext);
     }
 
     public static final class ApplicationEventDispatcher implements

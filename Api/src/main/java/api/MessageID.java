@@ -14,4 +14,5 @@ public class MessageID {
     public static final int APP_MASTER_REGISTER_RESPONSE = 11;
     public static final int ALLOCATE_REQUEST = 12;
     public static final int ALLOCATE_RESPONSE = 13;
+    public static final int START_APP_WORK_REQUEST = 14;
 }

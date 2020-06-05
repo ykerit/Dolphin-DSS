@@ -3,22 +3,30 @@ package DolphinMaster.AppManager;
 import DolphinMaster.AppMasterService;
 import DolphinMaster.ApplicationPlacementContext;
 import DolphinMaster.DolphinContext;
+import DolphinMaster.DolphinUtils;
 import DolphinMaster.app.AppEvent;
 import DolphinMaster.app.AppEventType;
 import DolphinMaster.app.AppImp;
 import DolphinMaster.scheduler.FairScheduler;
 import DolphinMaster.scheduler.ResourcePoolImp;
 import DolphinMaster.scheduler.ResourceScheduler;
+import DolphinMaster.scheduler.SchedulerUtils;
+import agent.application.Application;
+import api.app_master_message.ResourceRequest;
 import common.context.ApplicationSubmission;
 import common.event.EventProcessor;
 import common.exception.DolphinException;
+import common.exception.InvalidResourceRequestException;
+import common.resource.Resource;
 import common.struct.ApplicationId;
 import config.Configuration;
 import io.netty.util.internal.StringUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.Collections;
 import java.util.LinkedList;
+import java.util.List;
 
 // manages the list of applications
 public class ApplicationManager implements EventProcessor<ApplicationManagerEvent> {
@@ -99,6 +107,7 @@ public class ApplicationManager implements EventProcessor<ApplicationManagerEven
     private AppImp createAndPopulateNewApp(ApplicationSubmission submission, long submitTime,
                                            String user, long startTime) throws DolphinException {
         ApplicationId applicationId = submission.getApplicationId();
+        List<ResourceRequest> amReqs = validateAndCreateResourceRequest(submission);
         String poolName = submission.getPool();
         log.debug("application can submit the pool: " + poolName);
         AppImp application = new AppImp(applicationId,
@@ -106,7 +115,8 @@ public class ApplicationManager implements EventProcessor<ApplicationManagerEven
                 submission.getApplicationName(), user,
                 submission.getPool(), submission,
                 submitTime, submission.getApplicationType(),
-                startTime, submission.getApplicationTags());
+                startTime, submission.getApplicationTags(),
+                amReqs);
 
         if (context.getApps().putIfAbsent(applicationId, application) != null) {
             String message = "Application with id " + applicationId + " is already existed";
@@ -114,6 +124,22 @@ public class ApplicationManager implements EventProcessor<ApplicationManagerEven
             throw new DolphinException(message);
         }
         return application;
+    }
+
+    public List<ResourceRequest> validateAndCreateResourceRequest(ApplicationSubmission submission) throws InvalidResourceRequestException {
+        List<ResourceRequest> amReqs = null;
+        if (submission.getResource() != null) {
+            amReqs = Collections.singletonList(DolphinUtils.newResourceRequest(AppImp.AM_APP_WORK_PRIORITY, submission.getResource(), 1));
+        } else {
+            throw new InvalidResourceRequestException("Invalid resource request no resources requested");
+        }
+        String pool = submission.getPool();
+        Resource maxAllocation = scheduler.getMaximumResourceCapability(pool);
+        for (ResourceRequest amReq : amReqs) {
+            SchedulerUtils.normalizeAndValidateRequest(amReq, maxAllocation, pool, context, null);
+            amReq.setCapability(scheduler.getNormalizedResource(amReq.getCapability(), maxAllocation));
+        }
+        return amReqs;
     }
 
     private void copyPlacemenToSubmission(ApplicationPlacementContext context, ApplicationSubmission submission) {

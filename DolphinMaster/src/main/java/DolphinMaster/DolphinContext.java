@@ -27,8 +27,10 @@ public class DolphinContext implements AppMasterServiceContext {
     }
 
     public DolphinContext(EventDispatcher dispatcher, Configuration configuration) {
+        this.serviceContext = new ServiceContext();
+        this.activeServiceContext = new ActiveServiceContext();
         setConfiguration(configuration);
-        this.setDolphinDispatcher(dispatcher);
+        setDolphinDispatcher(dispatcher);
     }
 
     public DolphinMaster getDolphinMaster() {

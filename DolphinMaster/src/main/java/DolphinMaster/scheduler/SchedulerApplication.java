@@ -87,7 +87,7 @@ public class SchedulerApplication {
     }
 
     public ApplicationId getApplicationId() {
-        return null;
+        return applicationId;
     }
 
     public boolean isStopped() {

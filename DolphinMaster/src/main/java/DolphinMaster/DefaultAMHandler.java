@@ -57,7 +57,7 @@ public class DefaultAMHandler implements AppMasterServiceHandler {
         }
 
         Allocation allocation;
-        AppState state = app.getState();
+        AppState state = app.getAppState();
         if (state.equals(AppState.FINISHING)) {
             log.warn(applicationId + " is in " + state + " state, ignore AppWork allocate request");
             allocation = EMPTY_ALLOCATION;

@@ -30,5 +30,23 @@ public class ResourceUtils {
         return ret;
     }
 
+//    public static Resource getResourceTypesMinimumAllocation() {
+//        Resource ret = Resource.newInstance(0, 0);
+//        for (ResourceInformation entry : resourceTypesArray) {
+//            String name = entry.getName();
+//            if (name.equals(ResourceInformation.MEMORY_MB.getName())) {
+//                ret.setMemorySize(entry.getMinimumAllocation());
+//            } else if (name.equals(ResourceInformation.VCORES.getName())) {
+//                Long tmp = entry.getMinimumAllocation();
+//                if (tmp > Integer.MAX_VALUE) {
+//                    tmp = (long) Integer.MAX_VALUE;
+//                }
+//                ret.setVirtualCores(tmp.intValue());
+//            } else {
+//                ret.setResourceValue(name, entry.getMinimumAllocation());
+//            }
+//        }
+//        return ret;
+//    }
 
 }

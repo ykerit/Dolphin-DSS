@@ -17,7 +17,7 @@ public interface App extends EventProcessor<AppEvent> {
 
     ApplicationSubmission getApplicationSubmission();
 
-    AppState getState();
+    AppState getAppState();
 
     String getUser();
 

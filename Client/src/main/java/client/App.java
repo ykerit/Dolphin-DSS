@@ -2,9 +2,6 @@ package client;
 
 import client.command.ClientCLI;
 import com.beust.jcommander.JCommander;
-import org.greatfree.exceptions.RemoteReadException;
-
-import java.io.IOException;
 
 public class App {
 

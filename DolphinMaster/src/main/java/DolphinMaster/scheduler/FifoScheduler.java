@@ -228,7 +228,7 @@ public class FifoScheduler extends AbstractScheduler {
     }
 
     public synchronized void addApplication(ApplicationId applicationId,
-                                            String queue, String user) {
+                                            String pool, String user) {
         SchedulerApplication application =
                 new SchedulerApplication(applicationId, user, DEFAULT_QUEUE, context);
         applications.put(applicationId, application);
@@ -236,6 +236,8 @@ public class FifoScheduler extends AbstractScheduler {
                 + ", currently num of applications: " + applications.size());
         context.getDolphinDispatcher().getEventProcessor()
                 .process(new AppEvent(applicationId, AppEventType.APP_ACCEPTED));
+        context.getDolphinDispatcher().getEventProcessor()
+                .process(new AppEvent(applicationId, AppEventType.SCHEDULED));
     }
 
     private synchronized void doneApplication(ApplicationId applicationId,

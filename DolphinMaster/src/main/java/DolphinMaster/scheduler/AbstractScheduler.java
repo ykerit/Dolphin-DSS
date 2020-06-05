@@ -36,7 +36,7 @@ public abstract class AbstractScheduler extends AbstractService implements Resou
             new Allocation(EMPTY_APP_WORK_LIST, Resources.createResource(0), null, null);
 
     protected final ClusterNodeTracker nodeTracker = new ClusterNodeTracker();
-    protected final long THRAD_JOIN_TIMEOUT = 1000;
+    protected final long THREAD_JOIN_TIMEOUT = 1000L;
     protected final Lock readLock;
     private final Lock writeLock;
     private final Object updateThreadMonitor = new Object();
@@ -83,7 +83,7 @@ public abstract class AbstractScheduler extends AbstractService implements Resou
     protected void serviceStop() throws Exception {
         if (updateThread != null) {
             updateThread.interrupt();
-            updateThread.join(1000L);
+            updateThread.join(THREAD_JOIN_TIMEOUT);
         }
         super.serviceStop();
     }
@@ -343,7 +343,7 @@ public abstract class AbstractScheduler extends AbstractService implements Resou
     }
 
     public Resource getMinimumAllocation() {
-        Resource ret = Resource.newInstance(0, 0);
+        Resource ret = Resource.newInstance(10000, 8);
         return ret;
     }
 
