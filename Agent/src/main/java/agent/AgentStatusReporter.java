@@ -1,9 +1,8 @@
 package agent;
 
-import agent.application.Application;
-import agent.appworkmanage.appwork.AppWorkImp;
+import agent.appworkmanage.application.Application;
 import common.struct.*;
-import agent.application.ApplicationState;
+import agent.appworkmanage.application.ApplicationState;
 import agent.appworkmanage.appwork.AppWork;
 import agent.appworkmanage.appwork.AppWorkState;
 import agent.appworkmanage.monitor.AppWorkMonitor;
@@ -264,7 +263,7 @@ public class AgentStatusReporter extends AbstractService {
 
         for (AppWork appWork : this.context.getAppWorks().values()) {
             AppWorkId appWorkId = appWork.getAppWorkId();
-            ApplicationId applicationId = appWork.getAppId();
+            ApplicationId applicationId = appWorkId.getApplicationId();
             AppWorkStatus appWorkStatus = appWork.cloneAndGetAppWorkStatus();
             if (appWorkStatus.getState() == RemoteAppWorkState.COMPLETE) {
                 if (isApplicationStopped(applicationId)) {

@@ -1,17 +1,30 @@
 package api.app_master_message;
 
-import api.MessageID;
 import common.context.AppWorkLaunchContext;
-import org.greatfree.message.container.Request;
+import common.struct.AppWorkId;
 
-public class StartAppWorkRequest extends Request {
+import java.io.Serializable;
+
+public class StartAppWorkRequest implements Serializable {
     private final AppWorkLaunchContext appWorkLaunchContext;
-    public StartAppWorkRequest(AppWorkLaunchContext context) {
-        super(MessageID.START_APP_WORK_REQUEST);
+    private final AppWorkId appWorkId;
+    private final String applicationSubmitter;
+
+    public StartAppWorkRequest(AppWorkId appWorkId, AppWorkLaunchContext context, String submitter) {
+        this.appWorkId = appWorkId;
         appWorkLaunchContext = context;
+        this.applicationSubmitter = submitter;
     }
 
     public AppWorkLaunchContext getAppWorkLaunchContext() {
         return appWorkLaunchContext;
+    }
+
+    public AppWorkId getAppWorkId() {
+        return appWorkId;
+    }
+
+    public String getApplicationSubmitter() {
+        return applicationSubmitter;
     }
 }

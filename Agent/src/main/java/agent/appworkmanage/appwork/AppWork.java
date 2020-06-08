@@ -19,10 +19,6 @@ public interface AppWork extends EventProcessor<AppWorkEvent> {
 
     void setAppWorkId(AppWorkId appWorkId);
 
-    AgentId getAgentId();
-
-    void setAgentId(AgentId agentId);
-
     Resource getResource();
 
     void setResource(Resource resource);
@@ -34,8 +30,6 @@ public interface AppWork extends EventProcessor<AppWorkEvent> {
     Set<String> getAllocationTags();
 
     void setAllocationTags(Set<String> allocationTags);
-
-    ApplicationId getAppId();
 
     String getAppWorkStartTime();
 

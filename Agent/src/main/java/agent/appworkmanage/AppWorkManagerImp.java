@@ -4,14 +4,8 @@ import agent.CompletedAppWorksEvent;
 import agent.CompletedAppsEvent;
 import agent.Context;
 import agent.UpdateAppWorksEvent;
-import agent.application.Application;
-import agent.application.ApplicationEvent;
-import agent.application.ApplicationEventType;
-import agent.application.ApplicationFinishedEvent;
-import agent.appworkmanage.appwork.AppWork;
-import agent.appworkmanage.appwork.AppWorkEvent;
-import agent.appworkmanage.appwork.AppWorkEventType;
-import agent.appworkmanage.appwork.AppWorkKillEvent;
+import agent.appworkmanage.application.*;
+import agent.appworkmanage.appwork.*;
 import agent.appworkmanage.launcher.AbstractAppWorkLauncher;
 import agent.appworkmanage.launcher.AppWorkLauncherPool;
 import agent.appworkmanage.launcher.AppWorkLauncherPoolEventType;
@@ -20,17 +14,26 @@ import agent.appworkmanage.monitor.AppWorkMonitorEventType;
 import agent.appworkmanage.monitor.AppWorkMonitorImp;
 import agent.appworkmanage.scheduler.AppWorkScheduler;
 import agent.appworkmanage.scheduler.AppWorkSchedulerEventType;
+import api.app_master_message.*;
+import common.context.AppWorkLaunchContext;
 import common.event.EventDispatcher;
 import common.event.EventProcessor;
+import common.exception.DolphinException;
+import common.resource.LocalResource;
 import common.service.ChaosService;
+import common.struct.AppWorkExitStatus;
 import common.struct.AppWorkId;
 import common.struct.ApplicationId;
 import common.struct.RemoteAppWork;
+import config.DefaultServerConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.greatfree.server.container.ServerContainer;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -43,6 +46,9 @@ public class AppWorkManagerImp extends ChaosService implements AppWorkManager {
     private final AbstractAppWorkLauncher appWorkLauncher;
     private final EventDispatcher dispatcher;
     private final AppWorkScheduler scheduler;
+    private ServerContainer server;
+
+    private boolean serviceStopped = false;
 
     private final Lock readLock;
     private final Lock writeLock;
@@ -64,7 +70,6 @@ public class AppWorkManagerImp extends ChaosService implements AppWorkManager {
         dispatcher.register(ApplicationEventType.class, new ApplicationEventDispatcher());
         dispatcher.register(AppWorkEventType.class, new AppWorkEventDispatcher());
 
-        dispatcher.register(AppWorkEventType.class, new AppWorkEventProcess());
         dispatcher.register(AppWorkMonitorEventType.class, monitor);
         dispatcher.register(AppWorkLauncherPoolEventType.class, appWorkLauncher);
         dispatcher.register(AppWorkSchedulerEventType.class, scheduler);
@@ -78,16 +83,30 @@ public class AppWorkManagerImp extends ChaosService implements AppWorkManager {
 
     @Override
     protected void serviceInit() throws Exception {
+        server = new ServerContainer(DefaultServerConfig.AGENT_PORT, new AppWorkTask());
         super.serviceInit();
     }
 
     @Override
     protected void serviceStart() throws Exception {
+        server.start();
         super.serviceStart();
     }
 
     @Override
     protected void serviceStop() throws Exception {
+        writeLock.lock();
+        try {
+            serviceStopped = true;
+            if (context != null) {
+                // cleanup work
+            }
+        } finally {
+            writeLock.unlock();
+        }
+        if (server != null) {
+            server.stop(1000L);
+        }
         super.serviceStop();
     }
 
@@ -102,6 +121,86 @@ public class AppWorkManagerImp extends ChaosService implements AppWorkManager {
     }
 
     @Override
+    public StartAppWorksResponse startAppWorks(StartAppWorksRequest requests) throws DolphinException, IOException {
+        List<AppWorkId> succeededAppWorks = new ArrayList<>();
+        synchronized (this.context) {
+            for (StartAppWorkRequest request : requests.getRequests()) {
+                AppWorkId appWorkId = request.getAppWorkId();
+                try {
+                    startAppWorkInterval(request, "root");
+                    succeededAppWorks.add(appWorkId);
+                } catch (DolphinException e) {
+                    throw e;
+                }
+            }
+        }
+        return new StartAppWorksResponse(succeededAppWorks);
+    }
+
+    @Override
+    public StopAppWorkResponse stopAppWorks(StopAppWorkRequest request) throws DolphinException, IOException {
+        return null;
+    }
+
+    @Override
+    public GetAppWorkStatusesResponse getAppWorkStatuses(GetAppWorkStatusesRequest request) throws DolphinException, IOException {
+        return null;
+    }
+
+    protected void startAppWorkInterval(StartAppWorkRequest request, String remoteUser) throws DolphinException, IOException {
+        AppWorkId appWorkId = request.getAppWorkId();
+        String appWorkIdStr = appWorkId.toString();
+        String user = request.getApplicationSubmitter();
+
+        log.info("Start request for " + appWorkIdStr + "by user " + remoteUser);
+        AppWorkLaunchContext launchContext = request.getAppWorkLaunchContext();
+        for (Map.Entry<String, LocalResource> rsrc : launchContext
+                .getLocalResource().entrySet()) {
+            if (rsrc.getValue() == null || rsrc.getValue().getResource() == null) {
+                throw new DolphinException("Null resource URL for local resource");
+            } else if (rsrc.getValue().getType() == null) {
+                throw new DolphinException("Null resource type for local resource "
+                        + rsrc.getKey() + " : " + rsrc.getValue());
+            }
+        }
+
+        long appWorkStartTime = System.currentTimeMillis();
+        AppWork appWork = new AppWorkImp(this.context.getConfiguration(),
+                this.dispatcher,
+                launchContext,
+                context,
+                appWorkStartTime,
+                user,
+                appWorkId);
+        ApplicationId applicationId = appWorkId.getApplicationId();
+        if (context.getAppWorks().putIfAbsent(appWorkId, appWork) != null) {
+            throw new DolphinException("AppWork " + appWorkIdStr + " already is running on this node");
+        }
+        this.readLock.lock();
+        try {
+            if (!isServiceStopped()) {
+                if (!context.getApplications().containsKey(applicationId)) {
+                    Application application = new ApplicationImp(dispatcher, user, applicationId, context);
+                    if (context.getApplications().putIfAbsent(applicationId, application) == null) {
+                        log.info("Creating a new Application for app " + applicationId);
+                        dispatcher.getEventProcessor().process(new ApplicationEvent(applicationId, ApplicationEventType.INIT_APPLICATION));
+                    }
+                }
+                dispatcher.getEventProcessor().process(new ApplicationAppWorkInitEvent(appWork));
+            } else {
+                throw new DolphinException("AppWork start failed as the Agent is in the process of shutting down");
+            }
+
+        } finally {
+            this.readLock.unlock();
+        }
+    }
+
+    protected boolean isServiceStopped() {
+        return serviceStopped;
+    }
+
+    @Override
     public void process(AppWorkManagerEvent event) {
         log.debug("Processing event: {}", event.getType());
         switch (event.getType()) {
@@ -113,7 +212,7 @@ public class AppWorkManagerImp extends ChaosService implements AppWorkManager {
                         log.info("could't find application: {} while process FINISH_APP event.", applicationId);
                         continue;
                     }
-                    dispatcher.getEventProcessor().process(new ApplicationFinishedEvent(applicationId, "Aplication kiiled"));
+                    dispatcher.getEventProcessor().process(new ApplicationFinishedEvent(applicationId, "Application killed"));
                 }
                 break;
             case FINISH_APP_WORK:
@@ -130,7 +229,7 @@ public class AppWorkManagerImp extends ChaosService implements AppWorkManager {
                         log.warn("could't find AppWork: {} while process FINISH_APP_WORK", appWorkId);
                         continue;
                     }
-                    dispatcher.getEventProcessor().process(new AppWorkKillEvent(appWorkId));
+                    dispatcher.getEventProcessor().process(new AppWorkKillEvent(appWorkId, AppWorkExitStatus.KILLED_BY_DOLPHIN_MASTER, "AppWork killed by DolphinMaster"));
                 }
                 break;
             case UPDATE_APP_WORK:
@@ -162,20 +261,6 @@ public class AppWorkManagerImp extends ChaosService implements AppWorkManager {
     // pending
     protected AppWorkScheduler createAppWorkScheduler(Context context) {
         return new AppWorkScheduler(context, dispatcher, 100);
-    }
-
-    class AppWorkEventProcess implements EventProcessor<AppWorkEvent> {
-
-        @Override
-        public void process(AppWorkEvent event) {
-            ConcurrentMap<AppWorkId, AppWork> appWorks = AppWorkManagerImp.this.context.getAppWorks();
-            AppWork work = appWorks.get(event.getAppWorkId());
-            if (work != null) {
-                work.process(event);
-            } else {
-                log.warn("Event: {} can't send event to AppWork:{}", event, event.getAppWorkId());
-            }
-        }
     }
 
     class AppWorkEventDispatcher implements EventProcessor<AppWorkEvent> {

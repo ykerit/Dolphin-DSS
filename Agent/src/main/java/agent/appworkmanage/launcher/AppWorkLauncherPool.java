@@ -1,7 +1,7 @@
 package agent.appworkmanage.launcher;
 
 import agent.Context;
-import agent.application.Application;
+import agent.appworkmanage.application.Application;
 import agent.appworkmanage.AppWorkExecutor;
 import agent.appworkmanage.AppWorkManagerImp;
 import agent.appworkmanage.appwork.AppWork;
@@ -51,14 +51,14 @@ public class AppWorkLauncherPool extends AbstractService implements AbstractAppW
         AppWorkId id = appWork.getAppWorkId();
         switch (event.getType()) {
             case LAUNCHER_APP_WORK:
-                Application application = context.getApplications().get(appWork.getAppId());
+                Application application = context.getApplications().get(id.getApplicationId());
                 AppWorkLauncher launcher =
                         new AppWorkLauncher(context, dispatcher, executor, application, appWork, appWorkManager);
                 launcherPool.submit(launcher);
                 running.put(id, launcher);
                 break;
             case RELAUNCHED_APP_WORK:
-                application = context.getApplications().get(appWork.getAppId());
+                application = context.getApplications().get(id.getApplicationId());
                 break;
             case CLEANUP_APP_WORK:
                 break;

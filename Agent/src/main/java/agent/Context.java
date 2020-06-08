@@ -1,6 +1,6 @@
 package agent;
 
-import agent.application.Application;
+import agent.appworkmanage.application.Application;
 import common.struct.AppWorkId;
 import common.struct.ApplicationId;
 import agent.appworkmanage.AppWorkExecutor;

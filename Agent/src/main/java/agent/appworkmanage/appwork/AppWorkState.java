@@ -3,6 +3,7 @@ package agent.appworkmanage.appwork;
 public enum AppWorkState {
     NEW,
     LOCALIZING,
+    LOCALIZED,
     LOCALIZATION_FAILED,
     SCHEDULED,
     RUNNING,
@@ -13,6 +14,5 @@ public enum AppWorkState {
     EXITED_WITH_FAILURE,
     KILLING,
     APP_WORK_CLEANUP_AFTER_KILL,
-    CONTAINER_RESOURCES_CLEANUP,
     DONE
 }

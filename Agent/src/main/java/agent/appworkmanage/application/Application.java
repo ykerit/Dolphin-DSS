@@ -1,4 +1,4 @@
-package agent.application;
+package agent.appworkmanage.application;
 
 import agent.appworkmanage.appwork.AppWork;
 import common.event.EventProcessor;

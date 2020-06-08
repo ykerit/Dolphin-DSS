@@ -60,7 +60,7 @@ public class AppImp implements App {
     private final Set<String> applicationTags;
     private final List<ResourceRequest> amReqs;
     private Map<String, String> applicationEnv = new HashMap<>();
-    private RemoteAppWork masterAppWork;
+    private volatile RemoteAppWork masterAppWork;
 
     private SystemClock clock;
 

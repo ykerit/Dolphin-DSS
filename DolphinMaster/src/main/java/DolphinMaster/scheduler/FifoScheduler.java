@@ -355,10 +355,9 @@ public class FifoScheduler extends AbstractScheduler {
         if (assignedAppWorks > 0) {
             for (int i = 0; i < assignedAppWorks; ++i) {
 
-                AgentId nodeId = node.getNodeId();
+                AgentId agentId = node.getNodeId();
                 AppWorkId appWorkId = new AppWorkId(application.getApplicationId(), application.getNewAppWorkId());
-                RemoteAppWork appWork = new RemoteAppWork(appWorkId,
-                        new AgentId(node.getNode().getNodeAddress(), node.getNode().getCommandPort()),
+                RemoteAppWork appWork = new RemoteAppWork(appWorkId, agentId,
                         capability, null, null);
 
                 // Allocate!

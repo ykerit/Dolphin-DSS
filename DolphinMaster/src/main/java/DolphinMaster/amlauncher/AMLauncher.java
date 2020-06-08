@@ -5,7 +5,8 @@ import DolphinMaster.app.App;
 import DolphinMaster.app.AppEvent;
 import DolphinMaster.app.AppEventType;
 import api.app_master_message.StartAppWorkRequest;
-import api.app_master_message.StartAppWorkResponse;
+import api.app_master_message.StartAppWorksRequest;
+import api.app_master_message.StartAppWorksResponse;
 import common.context.AppWorkLaunchContext;
 import common.context.ApplicationSubmission;
 import common.event.EventProcessor;
@@ -19,6 +20,8 @@ import org.greatfree.client.StandaloneClient;
 import org.greatfree.exceptions.RemoteReadException;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class AMLauncher implements Runnable {
     private static final Logger log = LogManager.getLogger(AMLauncher.class);
@@ -44,10 +47,13 @@ public class AMLauncher implements Runnable {
         ApplicationSubmission submission = application.getApplicationSubmission();
         log.info("Setting up AppWork: " + appWorkId + " for AppMaster " + application.getApplicationId());
         AppWorkLaunchContext launchContext = createAMLaunchContext(submission, appWorkId);
-        StartAppWorkRequest sReq = new StartAppWorkRequest(launchContext);
+        StartAppWorkRequest sReq = new StartAppWorkRequest(appWorkId, launchContext, "root");
+        List<StartAppWorkRequest> list = new ArrayList<>();
+        list.add(sReq);
+        StartAppWorksRequest allRequest = new StartAppWorksRequest(list);
         AgentId agent = masterAppWork.getAgentId();
-        StartAppWorkResponse response = (StartAppWorkResponse) StandaloneClient.CS()
-                .read(agent.getLocalIP(), agent.getCommandPort(), sReq);
+        StartAppWorksResponse response = (StartAppWorksResponse) StandaloneClient.CS()
+                .read(agent.getLocalIP(), agent.getCommandPort(), allRequest);
         if (response != null) {
             log.info("Done launch AppMaster");
         }

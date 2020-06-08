@@ -1,7 +1,7 @@
 package agent.appworkmanage.launcher;
 
 import agent.Context;
-import agent.application.Application;
+import agent.appworkmanage.application.Application;
 import agent.appworkmanage.AppWorkExecutor;
 import agent.appworkmanage.AppWorkManagerImp;
 import agent.appworkmanage.appwork.*;

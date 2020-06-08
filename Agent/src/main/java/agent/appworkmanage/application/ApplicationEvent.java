@@ -1,4 +1,4 @@
-package agent.application;
+package agent.appworkmanage.application;
 
 import common.event.AbstractEvent;
 import common.struct.ApplicationId;
