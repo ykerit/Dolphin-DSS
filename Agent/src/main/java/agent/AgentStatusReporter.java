@@ -1,6 +1,7 @@
 package agent;
 
 import agent.appworkmanage.application.Application;
+import agent.appworkmanage.application.ApplicationImp;
 import common.struct.*;
 import agent.appworkmanage.application.ApplicationState;
 import agent.appworkmanage.appwork.AppWork;
@@ -17,6 +18,7 @@ import common.resource.ResourceCollector;
 import common.resource.ResourceUtilization;
 import common.service.AbstractService;
 import common.util.HardwareUtils;
+import config.DefaultServerConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.greatfree.client.StandaloneClient;
@@ -25,6 +27,8 @@ import org.greatfree.util.IPAddress;
 import org.greatfree.util.Tools;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.*;
 
 public class AgentStatusReporter extends AbstractService {
@@ -79,12 +83,14 @@ public class AgentStatusReporter extends AbstractService {
         this.physicalResource = Resource.newInstance(physicalMemoryMB, physicalCores);
 
         log.info("AgentManager resources is: {}", totalResource);
-        this.agentId = new AgentId(Tools.getLocalIP());
         super.serviceInit();
     }
 
     @Override
     protected void serviceStart() throws Exception {
+        agentId = buildAgentId();
+        context.setAgentId(agentId);
+        log.info("Agent id assigned is: " + this.agentId);
         try {
             registerWithDolphinMaster();
             super.serviceStart();
@@ -103,6 +109,21 @@ public class AgentStatusReporter extends AbstractService {
         }
         this.shutdown = true;
         super.serviceStop();
+    }
+
+    private AgentId buildAgentId() throws IOException {
+        InetAddress address = null;
+        try {
+            address = InetAddress.getLocalHost();
+        } catch (UnknownHostException e) {
+            log.error("can't get host address!");
+        }
+        String hostname = address.getCanonicalHostName();
+        AgentId ret = new AgentId();
+        ret.setHostname(hostname);
+        ret.setIP(Tools.getLocalIP());
+        ret.setCommandPort(DefaultServerConfig.AGENT_PORT);
+        return ret;
     }
 
     private boolean isApplicationStopped(ApplicationId applicationId) {
@@ -167,7 +188,7 @@ public class AgentStatusReporter extends AbstractService {
                     new RegisterAgentRequest(agentId,
                             totalResource,
                             physicalResource,
-                            getAppWorkStatuses(),
+                            getAgentAppWorkStatuses(),
                             getRunningApplications());
 
             IPAddress remote = this.context.getRemote();
@@ -183,9 +204,6 @@ public class AgentStatusReporter extends AbstractService {
         if (masterKey != null) {
             this.context.setToken(masterKey);
         }
-
-        agentId = registerResponse.getAgentId();
-        this.context.setAgentId(agentId);
         this.registerSuccess = true;
 
         StringBuffer successfulRegisterMsg = new StringBuffer();
@@ -293,6 +311,25 @@ public class AgentStatusReporter extends AbstractService {
                 appWorkStatuses, createKeepAliveApplicationList(),
                 appWorkUtilization, agentUtilization);
         return status;
+    }
+
+    private List<AgentAppWorkStatus> getAgentAppWorkStatuses() {
+        List<AgentAppWorkStatus> appWorkStatuses = new ArrayList<>();
+        for (AppWork appWork : this.context.getAppWorks().values()) {
+            AppWorkId appWorkId = appWork.getAppWorkId();
+            ApplicationId applicationId = appWorkId.getApplicationId();
+            if (!this.context.getApplications().containsKey(applicationId)) {
+                context.getAppWorks().remove(appWorkId);
+                continue;
+            }
+            AgentAppWorkStatus status = appWork.getAgentAppWorkStatus();
+            appWorkStatuses.add(status);
+            if (status.getAppWorkState() == RemoteAppWorkState.COMPLETE) {
+                addCompletedAppWork(appWorkId);
+            }
+        }
+        log.info("Sending out " + appWorkStatuses.size() + " Agent AppWork statuses: " + appWorkStatuses);
+        return appWorkStatuses;
     }
 
     private boolean processActionCommand(AgentHeartBeatResponse response) {

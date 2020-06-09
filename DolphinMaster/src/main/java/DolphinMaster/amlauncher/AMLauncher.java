@@ -53,7 +53,7 @@ public class AMLauncher implements Runnable {
         StartAppWorksRequest allRequest = new StartAppWorksRequest(list);
         AgentId agent = masterAppWork.getAgentId();
         StartAppWorksResponse response = (StartAppWorksResponse) StandaloneClient.CS()
-                .read(agent.getLocalIP(), agent.getCommandPort(), allRequest);
+                .read(agent.getIP(), agent.getCommandPort(), allRequest);
         if (response != null) {
             log.info("Done launch AppMaster");
         }

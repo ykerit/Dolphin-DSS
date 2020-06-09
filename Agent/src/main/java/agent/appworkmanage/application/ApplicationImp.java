@@ -90,7 +90,7 @@ public class ApplicationImp implements Application {
                 .to(ApplicationState.FINISHED)
                 .on(ApplicationEventType.APPLICATION_RESOURCES_CLEANEDUP);
 
-        appStateMachine = appStateMachineBuilder.newStateMachine(AppWorkState.NEW);
+        appStateMachine = appStateMachineBuilder.newStateMachine(ApplicationState.NEW);
         DotVisitor visitor = SquirrelProvider.getInstance().newInstance(DotVisitor.class);
         appStateMachine.accept(visitor);
         visitor.convertDotFile("/Users/yuankai/AgentAppStateMachine");

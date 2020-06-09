@@ -2,13 +2,27 @@ package DolphinMaster.node;
 
 
 import DolphinMaster.DolphinContext;
+import DolphinMaster.app.App;
+import DolphinMaster.app.AppState;
+import DolphinMaster.app.event.AppRunningOnNodeEvent;
+import DolphinMaster.scheduler.SchedulerUtils;
+import DolphinMaster.scheduler.event.NodeAddedSchedulerEvent;
+import DolphinMaster.scheduler.event.NodeUpdateSchedulerEvent;
+import agent.appworkmanage.appwork.AppWorkState;
 import agent.message.AgentHeartBeatResponse;
-import common.struct.*;
 import common.event.EventProcessor;
 import common.resource.Resource;
 import common.resource.ResourceUtilization;
+import common.struct.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.squirrelframework.foundation.component.SquirrelProvider;
+import org.squirrelframework.foundation.fsm.DotVisitor;
+import org.squirrelframework.foundation.fsm.StateMachineBuilderFactory;
+import org.squirrelframework.foundation.fsm.UntypedStateMachine;
+import org.squirrelframework.foundation.fsm.UntypedStateMachineBuilder;
+import org.squirrelframework.foundation.fsm.annotation.StateMachineParameters;
+import org.squirrelframework.foundation.fsm.impl.AbstractUntypedStateMachine;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -35,7 +49,7 @@ public class NodeImp implements Node, EventProcessor<NodeEvent> {
     private final Set<AppWorkId> appWorksToClean = new TreeSet<>();
     private final Set<AppWorkId> appWorksToBeRemovedFromAgent = new HashSet<>();
     private final List<ApplicationId> finishedApplications = new ArrayList<>();
-    private final List<ApplicationId> runningApplication = new ArrayList<>();
+    private final List<ApplicationId> runningApplications = new ArrayList<>();
     private final Map<AppWorkId, RemoteAppWork> toBeUpdateAppWorks = new HashMap<>();
     private final Map<AppWorkId, AppWorkStatus> updateExistAppWorks = new HashMap<>();
     private final Map<AppWorkId, RemoteAppWork> toBeDecreasedAppWorks = new HashMap<>();
@@ -51,6 +65,8 @@ public class NodeImp implements Node, EventProcessor<NodeEvent> {
     private ResourceUtilization nodeUtilization;
     private volatile Resource physicalResource;
 
+    private final UntypedStateMachineBuilder nodeStateMachineBuilder;
+    private final UntypedStateMachine nodeStateMachine;
 
     public NodeImp(AgentId id, DolphinContext context,
                    String hostName, int commandPort,
@@ -64,6 +80,60 @@ public class NodeImp implements Node, EventProcessor<NodeEvent> {
         this.timeStamp = 0;
         this.physicalResource = physicalResource;
         this.nodeUpdateQueue = new ConcurrentLinkedQueue<>();
+
+        nodeStateMachineBuilder = StateMachineBuilderFactory.create(NodeStateMachine.class);
+
+        nodeStateMachineBuilder.externalTransitions()
+                .from(NodeState.NEW)
+                .toAmong(NodeState.RUNNING, NodeState.NEW, NodeState.NEW)
+                .onEach(NodeEventType.STARTED, NodeEventType.RESOURCE_UPDATE, NodeEventType.FINISHED_APP_WORKS_PULLED_BY_AM)
+                .callMethod("addNode|updateResource|addAppWorksToBeRemoved");
+
+        nodeStateMachineBuilder.externalTransitions()
+                .from(NodeState.RUNNING)
+                .toAmong(NodeState.RUNNING, NodeState.LOST, NodeState.REBOOTED)
+                .onEach(NodeEventType.STATUS_UPDATE, NodeEventType.EXPIRE, NodeEventType.REBOOTING)
+                .callMethod("statusUpdate|_|_");
+
+        nodeStateMachineBuilder.externalTransition()
+                .from(NodeState.RUNNING)
+                .to(NodeState.RUNNING)
+                .on(NodeEventType.CLEANUP_APP);
+
+        nodeStateMachineBuilder.externalTransition()
+                .from(NodeState.RUNNING)
+                .to(NodeState.RUNNING)
+                .on(NodeEventType.CLEANUP_APP_WORK);
+
+        nodeStateMachineBuilder.externalTransition()
+                .from(NodeState.RUNNING)
+                .to(NodeState.RUNNING)
+                .on(NodeEventType.FINISHED_APP_WORKS_PULLED_BY_AM);
+
+        nodeStateMachineBuilder.externalTransition()
+                .from(NodeState.RUNNING)
+                .to(NodeState.RUNNING)
+                .on(NodeEventType.RECONNECTED);
+
+        nodeStateMachineBuilder.externalTransition()
+                .from(NodeState.RUNNING)
+                .to(NodeState.RUNNING)
+                .on(NodeEventType.RESOURCE_UPDATE);
+
+        nodeStateMachineBuilder.externalTransition()
+                .from(NodeState.RUNNING)
+                .to(NodeState.RUNNING)
+                .on(NodeEventType.UPDATE_APP_WORK);
+
+        nodeStateMachineBuilder.externalTransition()
+                .from(NodeState.RUNNING)
+                .to(NodeState.SHUTDOWN)
+                .on(NodeEventType.SHUTDOWN);
+
+        nodeStateMachine = nodeStateMachineBuilder.newStateMachine(NodeState.NEW);
+        DotVisitor visitor = SquirrelProvider.getInstance().newInstance(DotVisitor.class);
+        nodeStateMachine.accept(visitor);
+        visitor.convertDotFile("/Users/yuankai/NodeStateMachine");
     }
 
     @Override
@@ -153,7 +223,7 @@ public class NodeImp implements Node, EventProcessor<NodeEvent> {
     public List<ApplicationId> getRunningApps() {
         readLock.lock();
         try {
-            return new ArrayList<>(runningApplication);
+            return new ArrayList<>(runningApplications);
         } finally {
             readLock.unlock();
         }
@@ -215,10 +285,10 @@ public class NodeImp implements Node, EventProcessor<NodeEvent> {
 
     @Override
     public void process(NodeEvent event) {
-        log.debug("Processing {} of type {}", event.getAgentId(), event.getType());
         writeLock.lock();
         try {
-
+            log.debug("Processing {} of type {}", event.getAgentId(), event.getType());
+            nodeStateMachine.fire(event.getType(), event);
         } finally {
             writeLock.unlock();
         }
@@ -227,7 +297,7 @@ public class NodeImp implements Node, EventProcessor<NodeEvent> {
     public NodeState getState() {
         readLock.lock();
         try {
-            return nodeState;
+            return (NodeState) nodeStateMachine.getCurrentState();
         } finally {
             readLock.unlock();
         }
@@ -241,5 +311,151 @@ public class NodeImp implements Node, EventProcessor<NodeEvent> {
     @Override
     public String getRackName() {
         return null;
+    }
+
+    private void handleAppWorkStatus(List<AppWorkStatus> appWorkStatuses) {
+        List<AppWorkStatus> newlyLaunchedAppWorks = new ArrayList<>();
+        List<AppWorkStatus> newlyCompletedAppWorks = new ArrayList<>();
+        List<Pair<ApplicationId, AppWorkStatus>> needUpdateAppWorks =
+                new ArrayList<>();
+        int numRemoteRunningAppWorks = 0;
+        for (AppWorkStatus remoteAppWork : appWorkStatuses) {
+            AppWorkId appWorkId = remoteAppWork.getAppWorkId();
+            if (appWorksToClean.contains(appWorkId)) {
+                log.info("AppWork " + appWorkId + " already schedled for " +
+                        "cleanup, no further processing");
+                continue;
+            }
+            ApplicationId appWorkAppId = appWorkId.getApplicationId();
+            if (finishedApplications.contains(appWorkAppId)) {
+                log.info("AppWork " + appWorkId +
+                        " belongs to an application that is already killed, " +
+                        "no further processing");
+                continue;
+            } else if (!runningApplications.contains(appWorkAppId)) {
+                log.debug("AppWork {} is the first AppWork get launched for" +
+                        " application {}", appWorkId, appWorkAppId);
+                handleRunningAppOnNode(this, context, appWorkAppId, agentId);
+            }
+
+            if (remoteAppWork.getState() == RemoteAppWorkState.RUNNING) {
+                ++numRemoteRunningAppWorks;
+                if (!launchedAppWorks.contains(appWorkId)) {
+                    launchedAppWorks.add(appWorkId);
+                    newlyLaunchedAppWorks.add(remoteAppWork);
+                }
+                boolean needUpdate = false;
+                if (!updateExistAppWorks.containsKey(appWorkId)) {
+                    needUpdate = true;
+                }
+                if (needUpdate) {
+                    updateExistAppWorks.put(appWorkId, remoteAppWork);
+                    needUpdateAppWorks.add(new Pair<>(appWorkAppId, remoteAppWork));
+                }
+            } else {
+                launchedAppWorks.remove(appWorkId);
+                if (completedAppWorks.add(appWorkId)) {
+                    newlyCompletedAppWorks.add(remoteAppWork);
+                }
+            }
+        }
+        List<AppWorkStatus> lostAppWorks = findLostAppWorks(numRemoteRunningAppWorks, appWorkStatuses);
+        for (AppWorkStatus remoteAppWork : lostAppWorks) {
+            AppWorkId appWorkId = remoteAppWork.getAppWorkId();
+            if (completedAppWorks.add(appWorkId)) {
+                newlyCompletedAppWorks.add(remoteAppWork);
+            }
+        }
+        if (newlyLaunchedAppWorks.size() != 0 ||
+            newlyCompletedAppWorks.size() != 0 ||
+            needUpdateAppWorks.size() != 0) {
+            nodeUpdateQueue.add(new UpdateAppWorkInfo(newlyLaunchedAppWorks, newlyCompletedAppWorks, needUpdateAppWorks));
+        }
+    }
+
+    private List<AppWorkStatus> findLostAppWorks(int numRemoteRunning, List<AppWorkStatus> appWorkStatuses) {
+        if (numRemoteRunning >= launchedAppWorks.size()) {
+            return Collections.emptyList();
+        }
+        Set<AppWorkId> nodeAppWorks = new HashSet<>(numRemoteRunning);
+        List<AppWorkStatus> lostAppWorks = new ArrayList<>(launchedAppWorks.size() - numRemoteRunning);
+        for (AppWorkStatus remoteAppWork : appWorkStatuses) {
+            if (remoteAppWork.getState() == RemoteAppWorkState.RUNNING) {
+                nodeAppWorks.add(remoteAppWork.getAppWorkId());
+            }
+        }
+        Iterator<AppWorkId> iterator = launchedAppWorks.iterator();
+        while (iterator.hasNext()) {
+            AppWorkId appWorkId = iterator.next();
+            if (!nodeAppWorks.contains(appWorkId)) {
+                String msg = " AppWork " + appWorkId + " was running but not reported form " + agentId;
+                log.warn(msg);
+                lostAppWorks.add(SchedulerUtils.createAbnormalSchedulerUnitStatus(appWorkId, msg));
+                iterator.remove();
+            }
+        }
+        return lostAppWorks;
+    }
+
+
+    private static void handleRunningAppOnNode(NodeImp node, DolphinContext context,
+                                               ApplicationId applicationId, AgentId agentId) {
+        App app = context.getApps().get(applicationId);
+        if (app == null) {
+            log.warn("Can't get App by appId=" + applicationId
+                    + ", added it to finished application list for cleanup");
+            node.finishedApplications.add(applicationId);
+            node.runningApplications.remove(applicationId);
+            return;
+        }
+        node.runningApplications.add(applicationId);
+        context.getDolphinDispatcher().getEventProcessor().
+                process(new AppRunningOnNodeEvent(applicationId, agentId));
+    }
+
+    @StateMachineParameters(stateType = NodeState.class, eventType = NodeEventType.class, contextType = NodeEvent.class)
+    class NodeStateMachine extends AbstractUntypedStateMachine {
+
+        protected void addNode(NodeState from, NodeState to, NodeEventType type, NodeEvent event) {
+            AgentStartedEvent startEvent = (AgentStartedEvent) event;
+
+            AgentId agentId = NodeImp.this.agentId;
+            List<AgentAppWorkStatus> appWorkStatuses = startEvent.getAppWorkStatuses();
+            if (appWorkStatuses != null && !appWorkStatuses.isEmpty()) {
+                for (AgentAppWorkStatus appWork : appWorkStatuses) {
+                    if (appWork.getAppWorkState() == RemoteAppWorkState.RUNNING) {
+                        NodeImp.this.launchedAppWorks.add(appWork.getAppWorkId());
+                    }
+                }
+            }
+
+            if (startEvent.getRunningApplications() != null) {
+                for (ApplicationId applicationId : startEvent.getRunningApplications()) {
+                    handleRunningAppOnNode(NodeImp.this, NodeImp.this.context, applicationId, agentId);
+                }
+            }
+
+            NodeImp.this.context.getDolphinDispatcher()
+                    .getEventProcessor()
+                    .process(new NodeAddedSchedulerEvent(NodeImp.this, appWorkStatuses));
+        }
+
+        protected void updateResource(NodeState from, NodeState to, NodeEventType type, NodeEvent event) {
+            log.warn("Try to update resource on a " + getCurrentState() + " node: " + NodeImp.this.toString());
+            NodeResourceUpdateEvent resourceUpdateEvent = (NodeResourceUpdateEvent) event;
+            NodeImp.this.totalCapability = resourceUpdateEvent.getUpdateResource();
+        }
+
+        protected  void addAppWorksToBeRemoved(NodeState from, NodeState to, NodeEventType type, NodeEvent event) {
+            NodeImp.this.appWorksToBeRemovedFromAgent.
+                    addAll(((NodeFinishedAppWorksPulledByAMEvent)event).getAppWorks());
+        }
+
+        protected void statusUpdate(NodeState from, NodeState to, NodeEventType type, NodeEvent event) {
+            NodeStatusEvent statusEvent = (NodeStatusEvent) event;
+            NodeImp.this.handleAppWorkStatus(statusEvent.getAppWorks());
+            NodeImp.this.context.getDolphinDispatcher()
+                    .getEventProcessor().process(new NodeUpdateSchedulerEvent(NodeImp.this));
+        }
     }
 }

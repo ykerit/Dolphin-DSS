@@ -4,30 +4,16 @@ import java.io.Serializable;
 import java.util.Objects;
 
 public class AgentId implements Serializable, Comparable<AgentId> {
-    private long agentKey;
     private String localIP;
     private String hostname;
     private int commandPort;
 
-    public AgentId(String localIP) {
-        this.localIP = localIP;
-    }
-
-    public AgentId(String localIP, int commandPort) {
-        this.localIP = localIP;
-        this.commandPort = commandPort;
-    }
-
-    public void setAgentKey(long agentKey) {
-        this.agentKey = agentKey;
-    }
-
-    public long getAgentKey() {
-        return agentKey;
-    }
-
-    public String getLocalIP() {
+    public String getIP() {
         return localIP;
+    }
+
+    public void setIP(String localIP) {
+        this.localIP = localIP;
     }
 
     public String getHostname() {
@@ -48,16 +34,16 @@ public class AgentId implements Serializable, Comparable<AgentId> {
 
     @Override
     public String toString() {
-        return "AgentId: " + agentKey + "- hostname: " + hostname + " - localIP:" + localIP;
+        return hostname + ":" + commandPort;
     }
 
     @Override
     public int compareTo(AgentId o) {
         int cpt = hostname.compareTo(o.hostname);
         if (cpt == 0) {
-            if (this.getAgentKey() > o.getAgentKey()) {
+            if (this.getCommandPort() > o.getCommandPort()) {
                 return 1;
-            } else if (this.getAgentKey() < o.getAgentKey()) {
+            } else if (this.getCommandPort() < o.getCommandPort()) {
                 return -1;
             }
             return 0;
@@ -70,13 +56,13 @@ public class AgentId implements Serializable, Comparable<AgentId> {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         AgentId agentId = (AgentId) o;
-        return agentKey == agentId.agentKey &&
+        return commandPort == agentId.commandPort &&
                 Objects.equals(localIP, agentId.localIP) &&
                 Objects.equals(hostname, agentId.hostname);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(agentKey, localIP, hostname);
+        return Objects.hash(commandPort, localIP, hostname);
     }
 }

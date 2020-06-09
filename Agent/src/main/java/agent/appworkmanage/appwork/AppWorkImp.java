@@ -9,10 +9,7 @@ import common.context.AppWorkLaunchContext;
 import common.event.EventDispatcher;
 import common.event.EventProcessor;
 import common.resource.Resource;
-import common.struct.AppWorkExitStatus;
-import common.struct.AppWorkId;
-import common.struct.AppWorkStatus;
-import common.struct.Priority;
+import common.struct.*;
 import config.Configuration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -194,6 +191,23 @@ public class AppWorkImp implements AppWork {
     }
 
     @Override
+    public AgentAppWorkStatus getAgentAppWorkStatus() {
+        readLock.lock();
+        try {
+            AgentAppWorkStatus appWorkStatus = new AgentAppWorkStatus(appWorkId,
+                    getCurrentState(),
+                    getResource(),
+                    tips.toString(),
+                    exitCode,
+                    getPriority(),
+                    startTime);
+            return appWorkStatus;
+        } finally {
+            readLock.unlock();
+        }
+    }
+
+    @Override
     public Path getWorkDir() {
         return null;
     }
@@ -277,6 +291,26 @@ public class AppWorkImp implements AppWork {
     @Override
     public Map<Path, List<String>> getLocalizeResource() {
         return null;
+    }
+
+    public RemoteAppWorkState getCurrentState() {
+        switch (getAppWorkState()) {
+            case NEW:
+            case LOCALIZING:
+            case LOCALIZATION_FAILED:
+            case RUNNING:
+            case RELAUNCHING:
+            case REINITIALIZING:
+            case REINITIALIZING_AWAITING_KILL:
+            case EXITED_WITH_FAILURE:
+            case EXITED_WITH_SUCCESS:
+            case KILLING:
+            case APP_WORK_CLEANUP_AFTER_KILL:
+                return RemoteAppWorkState.RUNNING;
+            case DONE:
+            default:
+                return RemoteAppWorkState.COMPLETE;
+        }
     }
 
     private void addTips(String... tips) {

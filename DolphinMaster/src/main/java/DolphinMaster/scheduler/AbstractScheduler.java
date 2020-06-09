@@ -338,7 +338,7 @@ public abstract class AbstractScheduler extends AbstractService implements Resou
         }
     }
 
-    public void recoverAppWorksOnNode(List<AppWorkStatus> appWorkReports, Node node) {
+    public void recoverAppWorksOnNode(List<AgentAppWorkStatus> appWorkReports, Node node) {
 
     }
 

@@ -574,7 +574,7 @@ public class FifoScheduler extends AbstractScheduler {
 
     @Override
     public synchronized void recoverAppWorksOnNode(
-            List<AppWorkStatus> containerReports, Node node) {
+            List<AgentAppWorkStatus> containerReports, Node node) {
         super.recoverAppWorksOnNode(containerReports, node);
     }
 }

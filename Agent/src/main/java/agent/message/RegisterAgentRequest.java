@@ -1,5 +1,6 @@
 package agent.message;
 
+import common.struct.AgentAppWorkStatus;
 import common.struct.ApplicationId;
 import common.struct.AppWorkStatus;
 import common.resource.Resource;
@@ -14,14 +15,14 @@ public class RegisterAgentRequest extends Request {
     private Resource resource;
     private Resource physicalResource;
 
-    private List<AppWorkStatus> appWorkStatuses;
+    private List<AgentAppWorkStatus> appWorkStatuses;
     private List<ApplicationId> runningApplications;
 
 
     public RegisterAgentRequest(AgentId id,
                                 Resource resource,
                                 Resource physicalResource,
-                                List<AppWorkStatus> appWorkStatuses,
+                                List<AgentAppWorkStatus> appWorkStatuses,
                                 List<ApplicationId> runningApplications) {
         super(MessageID.REGISTER_AGENT_REQUEST);
         this.agentId = id;
@@ -43,7 +44,7 @@ public class RegisterAgentRequest extends Request {
         return physicalResource;
     }
 
-    public List<AppWorkStatus> getAppWorkStatuses() {
+    public List<AgentAppWorkStatus> getAppWorkStatuses() {
         return appWorkStatuses;
     }
 

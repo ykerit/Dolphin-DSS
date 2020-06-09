@@ -171,7 +171,7 @@ public class AgentTrackerService extends AbstractService implements AgentTracker
     }
 
     private boolean isValidNode(AgentId id) {
-        return isNodeInDecommissioning(id);
+        return !isNodeInDecommissioning(id);
     }
 
     private boolean isNodeInDecommissioning(AgentId agentId) {

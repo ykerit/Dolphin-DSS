@@ -1,9 +1,6 @@
 package agent.appworkmanage;
 
-import agent.CompletedAppWorksEvent;
-import agent.CompletedAppsEvent;
-import agent.Context;
-import agent.UpdateAppWorksEvent;
+import agent.*;
 import agent.appworkmanage.application.*;
 import agent.appworkmanage.appwork.*;
 import agent.appworkmanage.launcher.AbstractAppWorkLauncher;
@@ -21,16 +18,16 @@ import common.event.EventProcessor;
 import common.exception.DolphinException;
 import common.resource.LocalResource;
 import common.service.ChaosService;
-import common.struct.AppWorkExitStatus;
-import common.struct.AppWorkId;
-import common.struct.ApplicationId;
-import common.struct.RemoteAppWork;
+import common.struct.*;
 import config.DefaultServerConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.greatfree.server.container.ServerContainer;
+import org.greatfree.util.Tools;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -48,18 +45,21 @@ public class AppWorkManagerImp extends ChaosService implements AppWorkManager {
     private final AppWorkScheduler scheduler;
     private ServerContainer server;
 
+    protected final AgentStatusReporter statusReporter;
+
     private boolean serviceStopped = false;
 
     private final Lock readLock;
     private final Lock writeLock;
 
-    public AppWorkManagerImp(Context context, AppWorkExecutor executor) {
+    public AppWorkManagerImp(Context context, AppWorkExecutor executor, AgentStatusReporter statusReporter) {
         super(AppWorkManagerImp.class.getName());
         this.context = context;
         this.dispatcher = new EventDispatcher("AppWorkManage Dispatcher");
 
         appWorkLauncher = createAppWorkLauncher(context, executor);
         addService(appWorkLauncher);
+        this.statusReporter = statusReporter;
 
         scheduler = createAppWorkScheduler(context);
         addService(scheduler);

@@ -1,13 +1,9 @@
 package agent.appworkmanage.appwork;
 
-import common.struct.AppWorkId;
-import common.struct.ApplicationId;
+import common.struct.*;
 import common.context.AppWorkLaunchContext;
-import common.struct.AppWorkStatus;
 import common.event.EventProcessor;
 import common.resource.Resource;
-import common.struct.AgentId;
-import common.struct.Priority;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -40,6 +36,8 @@ public interface AppWork extends EventProcessor<AppWorkEvent> {
     AppWorkLaunchContext getAppWorkLaunchContext();
 
     AppWorkState getAppWorkState();
+
+    AgentAppWorkStatus getAgentAppWorkStatus();
 
     Path getWorkDir();
 

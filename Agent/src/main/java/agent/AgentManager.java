@@ -67,7 +67,7 @@ public class AgentManager extends ChaosService implements EventProcessor<AgentEv
         context.setAppWorkExecutor(executor);
 
         // ----------AppWork Manager ---------------
-        appWorkManager = createAppWorkManage(context, executor);
+        appWorkManager = createAppWorkManage(context, executor, statusReporter);
         addService(appWorkManager);
         context.setAppWorkManager(appWorkManager);
 
@@ -111,8 +111,8 @@ public class AgentManager extends ChaosService implements EventProcessor<AgentEv
         return new AgentResourceMonitor(this.context);
     }
 
-    protected AppWorkManagerImp createAppWorkManage(Context context, AppWorkExecutor executor) {
-        return new AppWorkManagerImp(context, executor);
+    protected AppWorkManagerImp createAppWorkManage(Context context, AppWorkExecutor executor, AgentStatusReporter reporter) {
+        return new AppWorkManagerImp(context, executor, reporter);
     }
 
     protected void shutdown() {

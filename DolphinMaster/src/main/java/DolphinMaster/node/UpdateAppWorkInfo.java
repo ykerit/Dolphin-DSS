@@ -2,6 +2,7 @@ package DolphinMaster.node;
 
 import common.struct.AppWorkStatus;
 import common.struct.ApplicationId;
+import common.struct.Pair;
 
 import java.util.List;
 import java.util.Map;
@@ -9,7 +10,7 @@ import java.util.Map;
 public class UpdateAppWorkInfo {
     private List<AppWorkStatus> newlyLaunchedAppWorks;
     private List<AppWorkStatus> completedAppWorks;
-    private List<Map.Entry<ApplicationId, AppWorkStatus>> updateAppWorks;
+    private List<Pair<ApplicationId, AppWorkStatus>> updateAppWorks;
 
     public UpdateAppWorkInfo() {
 
@@ -17,7 +18,7 @@ public class UpdateAppWorkInfo {
 
     public UpdateAppWorkInfo(List<AppWorkStatus> newlyLaunchedAppWorks,
                              List<AppWorkStatus> completedAppWorks,
-                             List<Map.Entry<ApplicationId, AppWorkStatus>> updateAppWorks) {
+                             List<Pair<ApplicationId, AppWorkStatus>> updateAppWorks) {
         this.newlyLaunchedAppWorks = newlyLaunchedAppWorks;
         this.completedAppWorks = completedAppWorks;
         this.updateAppWorks = updateAppWorks;
@@ -31,7 +32,7 @@ public class UpdateAppWorkInfo {
         return newlyLaunchedAppWorks;
     }
 
-    public List<Map.Entry<ApplicationId, AppWorkStatus>> getUpdateAppWorks() {
+    public List<Pair<ApplicationId, AppWorkStatus>> getUpdateAppWorks() {
         return updateAppWorks;
     }
 }
