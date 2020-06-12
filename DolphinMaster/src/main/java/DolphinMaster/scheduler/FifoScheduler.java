@@ -444,7 +444,7 @@ public class FifoScheduler extends AbstractScheduler {
             }
             break;
             default:
-                log.error("Invalid eventtype " + event.getType() + ". Ignoring!");
+                log.error("Invalid event type " + event.getType() + ". Ignoring!");
         }
     }
 

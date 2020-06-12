@@ -13,23 +13,13 @@ import java.util.Set;
 public interface AppWork extends EventProcessor<AppWorkEvent> {
     AppWorkId getAppWorkId();
 
-    void setAppWorkId(AppWorkId appWorkId);
-
     Resource getResource();
-
-    void setResource(Resource resource);
 
     Priority getPriority();
 
-    void setPriority();
+    long getAppWorkStartTime();
 
-    Set<String> getAllocationTags();
-
-    void setAllocationTags(Set<String> allocationTags);
-
-    String getAppWorkStartTime();
-
-    String getAppWorkLaunchedTime();
+    long getAppWorkLaunchedTime();
 
     String getUser();
 
@@ -37,27 +27,27 @@ public interface AppWork extends EventProcessor<AppWorkEvent> {
 
     AppWorkState getAppWorkState();
 
+    AppWorkStatus cloneAndGetAppWorkStatus();
+
     AgentAppWorkStatus getAgentAppWorkStatus();
 
-    Path getWorkDir();
+    String getWorkDir();
 
-    void setWorkDir();
+    void setWorkDir(String workDir);
 
     boolean isRunning();
-
-    AppWorkExecType getExecType();
 
     void setIsReInitializing(boolean isReInitializing);
 
     boolean isReInitializing();
 
+    boolean isMarkedForKilling();
+
     void sendLaunchEvent();
 
     void sendKillEvent(int exitStatus, String description);
 
-    boolean isRecovering();
-
-    AppWorkStatus cloneAndGetAppWorkStatus();
+    boolean isAppWorkInFinalStates();
 
     Map<Path, List<String>> getLocalizeResource();
 }

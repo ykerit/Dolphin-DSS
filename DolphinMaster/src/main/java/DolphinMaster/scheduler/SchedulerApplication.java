@@ -33,6 +33,7 @@ public class SchedulerApplication {
     private volatile Resource resourceLimit = new Resource(0, 0);
     private final boolean amRunning = false;
     private final ApplicationId applicationId;
+    private App app;
     private volatile Priority appPriority = null;
     private final ResourceUsage appResourceUsage = new ResourceUsage();
     private final ResourceUsage opportunisticResourceUsage = new ResourceUsage();
@@ -64,7 +65,7 @@ public class SchedulerApplication {
         this.applicationId = applicationId;
         if (context.getApps() != null &&
                 context.getApps().containsKey(applicationId)) {
-            App app = context.getApps().get(applicationId);
+            this.app = context.getApps().get(applicationId);
             ApplicationSubmission submission = app.getApplicationSubmission();
             applicationSchedulingEnvs = app.getApplicationEnvs();
         }
@@ -143,6 +144,10 @@ public class SchedulerApplication {
     private RemoteAppWork updateAppWork(SchedulerUnit schedulerUnit, AppWorkUpdateType updateType) {
         RemoteAppWork appWork = schedulerUnit.getAppWork();
         AppWorkType appWorkType = AppWorkType.TASK;
+        if (isWaitingForAMAppWork()) {
+            appWorkType = AppWorkType.APP_MASTER;
+        }
+
         if (updateType == null) {
             schedulerUnit.process(
                     new SchedulerUnitEvent(schedulerUnit.getAppWorkId(), SchedulerUnitEventType.ACQUIRED));
@@ -314,5 +319,9 @@ public class SchedulerApplication {
         } finally {
             writeLock.unlock();
         }
+    }
+
+    private boolean isWaitingForAMAppWork() {
+        return app.getMasterAppWork() == null;
     }
 }

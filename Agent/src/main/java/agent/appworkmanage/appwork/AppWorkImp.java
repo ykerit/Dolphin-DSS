@@ -9,6 +9,7 @@ import common.context.AppWorkLaunchContext;
 import common.event.EventDispatcher;
 import common.event.EventProcessor;
 import common.resource.Resource;
+import common.resource.Resources;
 import common.struct.*;
 import config.Configuration;
 import org.apache.logging.log4j.LogManager;
@@ -26,7 +27,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -49,18 +49,18 @@ public class AppWorkImp implements AppWork {
     private int exitCode = AppWorkExitStatus.INVALID;
     private final StringBuilder tips;
     private boolean isLaunched;
-    private boolean isPaused;
     private long appWorkLocalizationStartTime;
     private long appWorkLaunchStartTime;
-    private AppWorkExecType type;
+    private RemoteAppWork remoteAppWork;
 
     private final Context context;
     private final Configuration configuration;
     private final long startTime;
 
     private volatile boolean isMarkeForKilling = false;
+    private volatile boolean isReInitializing = false;
 
-    private Path workspace;
+    private String workspace;
 
     private final UntypedStateMachineBuilder appWorkStateMachineBuilder;
     private final UntypedStateMachine appWorkStateMachine;
@@ -68,15 +68,17 @@ public class AppWorkImp implements AppWork {
     public AppWorkImp(Configuration configuration,
                       EventDispatcher dispatcher,
                       AppWorkLaunchContext launchContext,
+                      RemoteAppWork remoteAppWork,
                       Context context,
                       long startTime,
-                      String user,
-                      AppWorkId appWorkId) {
+                      String user) {
         this.startTime = startTime;
         this.configuration = configuration;
         this.dispatcher = dispatcher;
         this.launchContext = launchContext;
-        this.appWorkId = appWorkId;
+        this.remoteAppWork = remoteAppWork;
+
+        this.appWorkId = this.remoteAppWork.getAppWorkId();
 
         this.user = user;
         this.tips = new StringBuilder();
@@ -147,37 +149,32 @@ public class AppWorkImp implements AppWork {
 
     @Override
     public AppWorkId getAppWorkId() {
-        return null;
+        return appWorkId;
     }
 
     @Override
-    public void setAppWorkId(AppWorkId appWorkId) {
-
+    public long getAppWorkStartTime() {
+        return this.startTime;
     }
 
     @Override
-    public String getAppWorkStartTime() {
-        return null;
-    }
-
-    @Override
-    public String getAppWorkLaunchedTime() {
-        return null;
+    public long getAppWorkLaunchedTime() {
+        return this.appWorkLaunchStartTime;
     }
 
     @Override
     public Resource getResource() {
-        return null;
-    }
-
-    @Override
-    public void setResource(Resource resource) {
-
+        return Resources.clone(remoteAppWork.getResource());
     }
 
     @Override
     public String getUser() {
-        return null;
+        this.readLock.lock();
+        try {
+            return this.user;
+        } finally {
+            readLock.unlock();
+        }
     }
 
     @Override
@@ -187,7 +184,12 @@ public class AppWorkImp implements AppWork {
 
     @Override
     public AppWorkState getAppWorkState() {
-        return null;
+        readLock.lock();
+        try {
+            return (AppWorkState) appWorkStateMachine.getCurrentState();
+        } finally {
+            readLock.unlock();
+        }
     }
 
     @Override
@@ -208,53 +210,41 @@ public class AppWorkImp implements AppWork {
     }
 
     @Override
-    public Path getWorkDir() {
-        return null;
+    public String getWorkDir() {
+        return workspace;
     }
 
     @Override
-    public void setWorkDir() {
-
+    public void setWorkDir(String workDir) {
+        this.workspace = workDir;
     }
 
     @Override
     public boolean isRunning() {
-        return false;
+        return getAppWorkState() == AppWorkState.RUNNING;
     }
 
     @Override
     public Priority getPriority() {
-        return null;
-    }
-
-    @Override
-    public void setPriority() {
-
-    }
-
-    @Override
-    public Set<String> getAllocationTags() {
-        return null;
-    }
-
-    @Override
-    public void setAllocationTags(Set<String> allocationTags) {
-
-    }
-
-    @Override
-    public AppWorkExecType getExecType() {
-        return type;
+        return remoteAppWork.getPriority();
     }
 
     @Override
     public void setIsReInitializing(boolean isReInitializing) {
+        if (this.isReInitializing && !isReInitializing) {
 
+        }
+        this.isReInitializing = isReInitializing;
     }
 
     @Override
     public boolean isReInitializing() {
-        return false;
+        return isReInitializing;
+    }
+
+    @Override
+    public boolean isMarkedForKilling() {
+        return isMarkeForKilling;
     }
 
     @Override
@@ -270,6 +260,16 @@ public class AppWorkImp implements AppWork {
         dispatcher.getEventProcessor().process(new AppWorkKillEvent(appWorkId, exitStatus, description));
     }
 
+    @Override
+    public boolean isAppWorkInFinalStates() {
+        AppWorkState state = getAppWorkState();
+        return state == AppWorkState.KILLING || state == AppWorkState.DONE
+                || state == AppWorkState.LOCALIZATION_FAILED
+                || state == AppWorkState.APP_WORK_CLEANUP_AFTER_KILL
+                || state == AppWorkState.EXITED_WITH_FAILURE
+                || state == AppWorkState.EXITED_WITH_SUCCESS;
+    }
+
     private void sendFinishedEvents() {
         EventProcessor processor = dispatcher.getEventProcessor();
         AppWorkStatus appWorkStatus = cloneAndGetAppWorkStatus();
@@ -278,10 +278,6 @@ public class AppWorkImp implements AppWork {
         // remove AppWork form the resource-monitor
     }
 
-    @Override
-    public boolean isRecovering() {
-        return false;
-    }
 
     @Override
     public AppWorkStatus cloneAndGetAppWorkStatus() {
@@ -329,33 +325,43 @@ public class AppWorkImp implements AppWork {
         }
     }
 
-    @StateMachineParameters(stateType = AppWorkState.class, eventType = AppWorkEventType.class, contextType = AppWorkEvent.class)
-    class AppWorkStateMachine extends AbstractUntypedStateMachine {
+    @StateMachineParameters(stateType = AppWorkState.class, eventType = AppWorkEventType.class, contextType = Channel.class)
+    static class AppWorkStateMachine extends AbstractUntypedStateMachine {
 
-        protected void toLocalizing(AppWorkState from, AppWorkState to, AppWorkEventType type, AppWorkEvent event) {
-            final AppWorkLaunchContext launchContext = AppWorkImp.this.launchContext;
-            AppWorkImp.this.appWorkLocalizationStartTime = System.currentTimeMillis();
+        protected void toLocalizing(AppWorkState from, AppWorkState to, AppWorkEventType type, Channel ch) {
+            final AppWorkLaunchContext launchContext = ch.appWork.launchContext;
+            ch.appWork.appWorkLocalizationStartTime = System.currentTimeMillis();
 
         }
 
-        protected void toLocalizationFailed(AppWorkState from, AppWorkState to, AppWorkEventType type, AppWorkEvent event) {
+        protected void toLocalizationFailed(AppWorkState from, AppWorkState to, AppWorkEventType type, Channel ch) {
             log.warn("Failed to parse resoure request");
             // AppWork Localization cleanup
 
         }
 
-        protected void toKillOnNew(AppWorkState from, AppWorkState to, AppWorkEventType type, AppWorkEvent event) {
-            AppWorkKillEvent killEvent = (AppWorkKillEvent) event;
-            AppWorkImp.this.exitCode = killEvent.getExitStatus();
-            AppWorkImp.this.addTips(killEvent.getDescription() + "\n");
-            AppWorkImp.this.addTips("AppWork is killed before being launched.\n");
+        protected void toKillOnNew(AppWorkState from, AppWorkState to, AppWorkEventType type, Channel ch) {
+            AppWorkKillEvent killEvent = (AppWorkKillEvent) ch.event;
+            ch.appWork.exitCode = killEvent.getExitStatus();
+            ch.appWork.addTips(killEvent.getDescription() + "\n");
+            ch.appWork.addTips("AppWork is killed before being launched.\n");
         }
 
-        protected void toLocalized(AppWorkState from, AppWorkState to, AppWorkEventType type, AppWorkEvent event) {
-            AppWorkResourceLocalizedEvent resourceLocalizedEvent = (AppWorkResourceLocalizedEvent) event;
+        protected void toLocalized(AppWorkState from, AppWorkState to, AppWorkEventType type, Channel ch) {
+            AppWorkResourceLocalizedEvent resourceLocalizedEvent = (AppWorkResourceLocalizedEvent) ch.event;
             LocalResourceRequest resourceRequest = resourceLocalizedEvent.getResourceRequest();
             Path location = resourceLocalizedEvent.getLocation();
 
+        }
+    }
+
+    class Channel {
+        final AppWorkImp appWork;
+        final AppWorkEvent event;
+
+        public Channel(AppWorkImp appWork, AppWorkEvent event) {
+            this.appWork = appWork;
+            this.event = event;
         }
     }
 }

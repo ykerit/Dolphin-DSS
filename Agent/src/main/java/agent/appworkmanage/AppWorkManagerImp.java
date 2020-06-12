@@ -9,8 +9,6 @@ import agent.appworkmanage.launcher.AppWorkLauncherPoolEventType;
 import agent.appworkmanage.monitor.AppWorkMonitor;
 import agent.appworkmanage.monitor.AppWorkMonitorEventType;
 import agent.appworkmanage.monitor.AppWorkMonitorImp;
-import agent.appworkmanage.scheduler.AppWorkScheduler;
-import agent.appworkmanage.scheduler.AppWorkSchedulerEventType;
 import api.app_master_message.*;
 import common.context.AppWorkLaunchContext;
 import common.event.EventDispatcher;
@@ -18,16 +16,16 @@ import common.event.EventProcessor;
 import common.exception.DolphinException;
 import common.resource.LocalResource;
 import common.service.ChaosService;
-import common.struct.*;
+import common.struct.AppWorkExitStatus;
+import common.struct.AppWorkId;
+import common.struct.ApplicationId;
+import common.struct.RemoteAppWork;
 import config.DefaultServerConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.greatfree.server.container.ServerContainer;
-import org.greatfree.util.Tools;
 
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -42,7 +40,6 @@ public class AppWorkManagerImp extends ChaosService implements AppWorkManager {
     private final AppWorkMonitor monitor;
     private final AbstractAppWorkLauncher appWorkLauncher;
     private final EventDispatcher dispatcher;
-    private final AppWorkScheduler scheduler;
     private ServerContainer server;
 
     protected final AgentStatusReporter statusReporter;
@@ -61,9 +58,6 @@ public class AppWorkManagerImp extends ChaosService implements AppWorkManager {
         addService(appWorkLauncher);
         this.statusReporter = statusReporter;
 
-        scheduler = createAppWorkScheduler(context);
-        addService(scheduler);
-
         monitor = createAppWorkMonitor();
         addService(monitor);
 
@@ -72,7 +66,6 @@ public class AppWorkManagerImp extends ChaosService implements AppWorkManager {
 
         dispatcher.register(AppWorkMonitorEventType.class, monitor);
         dispatcher.register(AppWorkLauncherPoolEventType.class, appWorkLauncher);
-        dispatcher.register(AppWorkSchedulerEventType.class, scheduler);
 
         addService(dispatcher);
 
@@ -112,12 +105,7 @@ public class AppWorkManagerImp extends ChaosService implements AppWorkManager {
 
     @Override
     public AppWorkMonitor getAppWorkMonitor() {
-        return null;
-    }
-
-    @Override
-    public AppWorkScheduler getAppWorkScheduler() {
-        return null;
+        return monitor;
     }
 
     @Override
@@ -125,7 +113,7 @@ public class AppWorkManagerImp extends ChaosService implements AppWorkManager {
         List<AppWorkId> succeededAppWorks = new ArrayList<>();
         synchronized (this.context) {
             for (StartAppWorkRequest request : requests.getRequests()) {
-                AppWorkId appWorkId = request.getAppWorkId();
+                AppWorkId appWorkId = request.getAppWork().getAppWorkId();
                 try {
                     startAppWorkInterval(request, "root");
                     succeededAppWorks.add(appWorkId);
@@ -148,7 +136,8 @@ public class AppWorkManagerImp extends ChaosService implements AppWorkManager {
     }
 
     protected void startAppWorkInterval(StartAppWorkRequest request, String remoteUser) throws DolphinException, IOException {
-        AppWorkId appWorkId = request.getAppWorkId();
+        RemoteAppWork remoteAppWork = request.getAppWork();
+        AppWorkId appWorkId = remoteAppWork.getAppWorkId();
         String appWorkIdStr = appWorkId.toString();
         String user = request.getApplicationSubmitter();
 
@@ -168,10 +157,10 @@ public class AppWorkManagerImp extends ChaosService implements AppWorkManager {
         AppWork appWork = new AppWorkImp(this.context.getConfiguration(),
                 this.dispatcher,
                 launchContext,
+                remoteAppWork,
                 context,
                 appWorkStartTime,
-                user,
-                appWorkId);
+                user);
         ApplicationId applicationId = appWorkId.getApplicationId();
         if (context.getAppWorks().putIfAbsent(appWorkId, appWork) != null) {
             throw new DolphinException("AppWork " + appWorkIdStr + " already is running on this node");
@@ -256,11 +245,6 @@ public class AppWorkManagerImp extends ChaosService implements AppWorkManager {
 
     protected AppWorkMonitor createAppWorkMonitor() {
         return new AppWorkMonitorImp();
-    }
-
-    // pending
-    protected AppWorkScheduler createAppWorkScheduler(Context context) {
-        return new AppWorkScheduler(context, dispatcher, 100);
     }
 
     class AppWorkEventDispatcher implements EventProcessor<AppWorkEvent> {

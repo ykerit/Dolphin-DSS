@@ -12,20 +12,12 @@ public class AppWorkTest {
     private final Context context;
     private final Configuration config;
     private final EventDispatcher dispatcher;
-    private final AppWork appWork;
 
     public AppWorkTest() {
         appWorkId = new AppWorkId();
         context = new Context();
         config = new Configuration();
         dispatcher = new EventDispatcher("test");
-        appWork = new AppWorkImp(config,
-                dispatcher,
-                null,
-                context,
-                System.currentTimeMillis(),
-                "root",
-                appWorkId);
     }
 
     @Test

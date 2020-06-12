@@ -4,7 +4,6 @@ import agent.Context;
 import agent.appworkmanage.appwork.AppWork;
 import agent.appworkmanage.appwork.AppWorkInitEvent;
 import agent.appworkmanage.appwork.AppWorkKillEvent;
-import agent.appworkmanage.appwork.AppWorkState;
 import common.event.EventDispatcher;
 import common.struct.AppWorkExitStatus;
 import common.struct.AppWorkId;
@@ -52,7 +51,7 @@ public class ApplicationImp implements Application {
         readLock = lock.readLock();
         writeLock = lock.writeLock();
 
-        appStateMachineBuilder = StateMachineBuilderFactory.create(ApplicationImp.AppStateMachine.class);
+        appStateMachineBuilder = StateMachineBuilderFactory.create(AppStateMachine.class);
 
         appStateMachineBuilder.externalTransition()
                 .from(ApplicationState.NEW)
@@ -136,45 +135,55 @@ public class ApplicationImp implements Application {
         try {
             ApplicationId applicationId = event.getApplicationId();
             log.debug("Processing {} of type {}", applicationId, event.getType());
-            appStateMachine.fire(event.getType(), event);
+            appStateMachine.fire(event.getType(), new Channel(this, event));
         } finally {
             writeLock.unlock();
         }
     }
 
-    @StateMachineParameters(stateType = ApplicationState.class, eventType = ApplicationEventType.class, contextType = ApplicationEvent.class)
-    class AppStateMachine extends AbstractUntypedStateMachine {
+    @StateMachineParameters(stateType = ApplicationState.class, eventType = ApplicationEventType.class, contextType = Channel.class)
+    static class AppStateMachine extends AbstractUntypedStateMachine {
 
-        protected void initAppWork(ApplicationState from, ApplicationState to, ApplicationEventType type, ApplicationEvent event) {
-            ApplicationAppWorkInitEvent initEvent = (ApplicationAppWorkInitEvent) event;
+        protected void initAppWork(ApplicationState from, ApplicationState to, ApplicationEventType type, Channel ch) {
+            ApplicationAppWorkInitEvent initEvent = (ApplicationAppWorkInitEvent) ch.event;
             AppWork appWork = initEvent.getAppWork();
-            ApplicationImp.this.appWorks.put(appWork.getAppWorkId(), appWork);
-            log.info("Adding " + appWork.getAppWorkId() + " to application " + ApplicationImp.this.toString());
+            ch.app.appWorks.put(appWork.getAppWorkId(), appWork);
+            log.info("Adding " + appWork.getAppWorkId() + " to application " + ch.app.toString());
         }
 
-        protected void appFinishNone(ApplicationState from, ApplicationState to, ApplicationEventType type, ApplicationEvent event) {
-            ApplicationFinishedEvent finishedEvent = (ApplicationFinishedEvent) event;
-            if (ApplicationImp.this.appWorks.isEmpty()) {
-                ApplicationImp.this.handleAppFinishWithAppWorksCleanup();
+        protected void appFinishNone(ApplicationState from, ApplicationState to, ApplicationEventType type, Channel ch) {
+            ApplicationFinishedEvent finishedEvent = (ApplicationFinishedEvent) ch.event;
+            if (ch.app.appWorks.isEmpty()) {
+                ch.app.handleAppFinishWithAppWorksCleanup();
             }
         }
 
-        protected void appFinish(ApplicationState from, ApplicationState to, ApplicationEventType type, ApplicationEvent event) {
-            ApplicationFinishedEvent finishedEvent = (ApplicationFinishedEvent) event;
-            if (ApplicationImp.this.appWorks.isEmpty()) {
+        protected void appFinish(ApplicationState from, ApplicationState to, ApplicationEventType type, Channel ch) {
+            ApplicationFinishedEvent finishedEvent = (ApplicationFinishedEvent) ch.event;
+            if (ch.app.appWorks.isEmpty()) {
                 return;
             }
-            for (AppWorkId appWorkId : ApplicationImp.this.appWorks.keySet()) {
-                ApplicationImp.this.dispatcher.getEventProcessor()
+            for (AppWorkId appWorkId : ch.app.appWorks.keySet()) {
+                ch.app.dispatcher.getEventProcessor()
                         .process(new AppWorkKillEvent(appWorkId, AppWorkExitStatus.KILLED_AFTER_APP_COMPLETION,
                                 "AppWork killed on application finish event " + finishedEvent.getTips()));
             }
         }
 
-        protected void appInitDone(ApplicationState from, ApplicationState to, ApplicationEventType type, ApplicationEvent event) {
-            for (AppWork appWork : ApplicationImp.this.appWorks.values()) {
-                ApplicationImp.this.dispatcher.getEventProcessor().process(new AppWorkInitEvent(appWork.getAppWorkId()));
+        protected void appInitDone(ApplicationState from, ApplicationState to, ApplicationEventType type, Channel ch) {
+            for (AppWork appWork : ch.app.appWorks.values()) {
+                ch.app.dispatcher.getEventProcessor().process(new AppWorkInitEvent(appWork.getAppWorkId()));
             }
+        }
+    }
+
+    class Channel {
+        final ApplicationImp app;
+        final ApplicationEvent event;
+
+        public Channel(ApplicationImp app, ApplicationEvent event) {
+            this.app = app;
+            this.event = event;
         }
     }
 }

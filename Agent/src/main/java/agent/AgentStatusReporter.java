@@ -406,7 +406,7 @@ public class AgentStatusReporter extends AbstractService {
                 }
 
                 try {
-                    Thread.sleep(3000L);
+                    Thread.sleep(context.getConfiguration().getAgentSendHeartBeatPeriod());
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

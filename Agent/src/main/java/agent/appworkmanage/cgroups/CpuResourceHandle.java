@@ -1,7 +1,6 @@
 package agent.appworkmanage.cgroups;
 
 import agent.appworkmanage.appwork.AppWork;
-import agent.appworkmanage.appwork.AppWorkExecType;
 import common.Privileged.PrivilegedOperation;
 import common.exception.ResourceHandleException;
 import common.resource.Resource;
@@ -30,7 +29,6 @@ public class CpuResourceHandle implements ResourceHandler {
     static final int MAX_QUOTA_US = 1000 * 1000;
     static final int MIN_PERIOD_US = 1000;
     static final int CPU_DEFAULT_WEIGHT = 1024;
-    static final int CPU_DEFAULT_WEIGHT_OPPORTUNISTIC = 2;
 
     CpuResourceHandle(CGroupsHandler cGroupsHandler) {
         this.cGroupsHandler = cGroupsHandler;
@@ -131,13 +129,8 @@ public class CpuResourceHandle implements ResourceHandler {
         File cgroup = new File(cGroupsHandler.getPathForCGroup(CPU, cgroupId));
         if (cgroup.exists()) {
             int appWorkVCores = appWorkResource.getVCore();
-            if (appWork.getExecType() == AppWorkExecType.OPPORTUNISTIC) {
-                cGroupsHandler.updateCGroupParam(CPU, cgroupId, CGroupsHandler.CGROUP_CPU_QUOTA_US,
-                        String.valueOf(CPU_DEFAULT_WEIGHT_OPPORTUNISTIC));
-            } else {
-                int cpuShares = CPU_DEFAULT_WEIGHT * appWorkVCores;
-                cGroupsHandler.updateCGroupParam(CPU, cgroupId, CGroupsHandler.CGROUP_CPU_SHARES, String.valueOf(cpuShares));
-            }
+            int cpuShares = CPU_DEFAULT_WEIGHT * appWorkVCores;
+            cGroupsHandler.updateCGroupParam(CPU, cgroupId, CGroupsHandler.CGROUP_CPU_SHARES, String.valueOf(cpuShares));
         }
         return null;
     }

@@ -2,26 +2,27 @@ package api.app_master_message;
 
 import common.context.AppWorkLaunchContext;
 import common.struct.AppWorkId;
+import common.struct.RemoteAppWork;
 
 import java.io.Serializable;
 
 public class StartAppWorkRequest implements Serializable {
     private final AppWorkLaunchContext appWorkLaunchContext;
-    private final AppWorkId appWorkId;
+    private final RemoteAppWork appWork;
     private final String applicationSubmitter;
 
-    public StartAppWorkRequest(AppWorkId appWorkId, AppWorkLaunchContext context, String submitter) {
-        this.appWorkId = appWorkId;
+    public StartAppWorkRequest(RemoteAppWork appWork, AppWorkLaunchContext context, String submitter) {
+        this.appWork = appWork;
         appWorkLaunchContext = context;
-        this.applicationSubmitter = submitter;
+        applicationSubmitter = submitter;
     }
 
     public AppWorkLaunchContext getAppWorkLaunchContext() {
         return appWorkLaunchContext;
     }
 
-    public AppWorkId getAppWorkId() {
-        return appWorkId;
+    public RemoteAppWork getAppWork() {
+        return appWork;
     }
 
     public String getApplicationSubmitter() {

@@ -18,6 +18,7 @@
             <option value="$PROJECT_DIR$/Common" />
             <option value="$PROJECT_DIR$/Config" />
             <option value="$PROJECT_DIR$/DolphinMaster" />
+            <option value="$PROJECT_DIR$/example" />
           </set>
         </option>
         <option name="useQualifiedModuleNames" value="true" />

@@ -47,7 +47,7 @@ public class AMLauncher implements Runnable {
         ApplicationSubmission submission = application.getApplicationSubmission();
         log.info("Setting up AppWork: " + appWorkId + " for AppMaster " + application.getApplicationId());
         AppWorkLaunchContext launchContext = createAMLaunchContext(submission, appWorkId);
-        StartAppWorkRequest sReq = new StartAppWorkRequest(appWorkId, launchContext, "root");
+        StartAppWorkRequest sReq = new StartAppWorkRequest(masterAppWork, launchContext, submission.getUser());
         List<StartAppWorkRequest> list = new ArrayList<>();
         list.add(sReq);
         StartAppWorksRequest allRequest = new StartAppWorksRequest(list);

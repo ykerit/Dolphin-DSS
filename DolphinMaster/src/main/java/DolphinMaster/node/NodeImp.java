@@ -3,17 +3,16 @@ package DolphinMaster.node;
 
 import DolphinMaster.DolphinContext;
 import DolphinMaster.app.App;
-import DolphinMaster.app.AppState;
 import DolphinMaster.app.event.AppRunningOnNodeEvent;
 import DolphinMaster.scheduler.SchedulerUtils;
 import DolphinMaster.scheduler.event.NodeAddedSchedulerEvent;
 import DolphinMaster.scheduler.event.NodeUpdateSchedulerEvent;
-import agent.appworkmanage.appwork.AppWorkState;
 import agent.message.AgentHeartBeatResponse;
 import common.event.EventProcessor;
 import common.resource.Resource;
 import common.resource.ResourceUtilization;
 import common.struct.*;
+import common.util.Tools;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.squirrelframework.foundation.component.SquirrelProvider;
@@ -133,7 +132,7 @@ public class NodeImp implements Node, EventProcessor<NodeEvent> {
         nodeStateMachine = nodeStateMachineBuilder.newStateMachine(NodeState.NEW);
         DotVisitor visitor = SquirrelProvider.getInstance().newInstance(DotVisitor.class);
         nodeStateMachine.accept(visitor);
-        visitor.convertDotFile("/Users/yuankai/NodeStateMachine");
+        visitor.convertDotFile(Tools.storeStateMachine("NodeStateMachine"));
     }
 
     @Override
@@ -288,7 +287,7 @@ public class NodeImp implements Node, EventProcessor<NodeEvent> {
         writeLock.lock();
         try {
             log.debug("Processing {} of type {}", event.getAgentId(), event.getType());
-            nodeStateMachine.fire(event.getType(), event);
+            nodeStateMachine.fire(event.getType(), new Channel(this, event));
         } finally {
             writeLock.unlock();
         }
@@ -367,8 +366,8 @@ public class NodeImp implements Node, EventProcessor<NodeEvent> {
             }
         }
         if (newlyLaunchedAppWorks.size() != 0 ||
-            newlyCompletedAppWorks.size() != 0 ||
-            needUpdateAppWorks.size() != 0) {
+                newlyCompletedAppWorks.size() != 0 ||
+                needUpdateAppWorks.size() != 0) {
             nodeUpdateQueue.add(new UpdateAppWorkInfo(newlyLaunchedAppWorks, newlyCompletedAppWorks, needUpdateAppWorks));
         }
     }
@@ -413,49 +412,59 @@ public class NodeImp implements Node, EventProcessor<NodeEvent> {
                 process(new AppRunningOnNodeEvent(applicationId, agentId));
     }
 
-    @StateMachineParameters(stateType = NodeState.class, eventType = NodeEventType.class, contextType = NodeEvent.class)
-    class NodeStateMachine extends AbstractUntypedStateMachine {
+    @StateMachineParameters(stateType = NodeState.class, eventType = NodeEventType.class, contextType = Channel.class)
+    static class NodeStateMachine extends AbstractUntypedStateMachine {
 
-        protected void addNode(NodeState from, NodeState to, NodeEventType type, NodeEvent event) {
-            AgentStartedEvent startEvent = (AgentStartedEvent) event;
+        protected void addNode(NodeState from, NodeState to, NodeEventType type, Channel ch) {
+            AgentStartedEvent startEvent = (AgentStartedEvent) ch.event;
 
-            AgentId agentId = NodeImp.this.agentId;
+            AgentId agentId = ch.node.agentId;
             List<AgentAppWorkStatus> appWorkStatuses = startEvent.getAppWorkStatuses();
             if (appWorkStatuses != null && !appWorkStatuses.isEmpty()) {
                 for (AgentAppWorkStatus appWork : appWorkStatuses) {
                     if (appWork.getAppWorkState() == RemoteAppWorkState.RUNNING) {
-                        NodeImp.this.launchedAppWorks.add(appWork.getAppWorkId());
+                        ch.node.launchedAppWorks.add(appWork.getAppWorkId());
                     }
                 }
             }
 
             if (startEvent.getRunningApplications() != null) {
                 for (ApplicationId applicationId : startEvent.getRunningApplications()) {
-                    handleRunningAppOnNode(NodeImp.this, NodeImp.this.context, applicationId, agentId);
+                    handleRunningAppOnNode(ch.node, ch.node.context, applicationId, agentId);
                 }
             }
 
-            NodeImp.this.context.getDolphinDispatcher()
+            ch.node.context.getDolphinDispatcher()
                     .getEventProcessor()
-                    .process(new NodeAddedSchedulerEvent(NodeImp.this, appWorkStatuses));
+                    .process(new NodeAddedSchedulerEvent(ch.node, appWorkStatuses));
         }
 
-        protected void updateResource(NodeState from, NodeState to, NodeEventType type, NodeEvent event) {
-            log.warn("Try to update resource on a " + getCurrentState() + " node: " + NodeImp.this.toString());
-            NodeResourceUpdateEvent resourceUpdateEvent = (NodeResourceUpdateEvent) event;
-            NodeImp.this.totalCapability = resourceUpdateEvent.getUpdateResource();
+        protected void updateResource(NodeState from, NodeState to, NodeEventType type, Channel ch) {
+            log.warn("Try to update resource on a " + getCurrentState() + " node: " + ch.node.toString());
+            NodeResourceUpdateEvent resourceUpdateEvent = (NodeResourceUpdateEvent) ch.event;
+            ch.node.totalCapability = resourceUpdateEvent.getUpdateResource();
         }
 
-        protected  void addAppWorksToBeRemoved(NodeState from, NodeState to, NodeEventType type, NodeEvent event) {
-            NodeImp.this.appWorksToBeRemovedFromAgent.
-                    addAll(((NodeFinishedAppWorksPulledByAMEvent)event).getAppWorks());
+        protected void addAppWorksToBeRemoved(NodeState from, NodeState to, NodeEventType type, Channel ch) {
+            ch.node.appWorksToBeRemovedFromAgent.
+                    addAll(((NodeFinishedAppWorksPulledByAMEvent) ch.event).getAppWorks());
         }
 
-        protected void statusUpdate(NodeState from, NodeState to, NodeEventType type, NodeEvent event) {
-            NodeStatusEvent statusEvent = (NodeStatusEvent) event;
-            NodeImp.this.handleAppWorkStatus(statusEvent.getAppWorks());
-            NodeImp.this.context.getDolphinDispatcher()
-                    .getEventProcessor().process(new NodeUpdateSchedulerEvent(NodeImp.this));
+        protected void statusUpdate(NodeState from, NodeState to, NodeEventType type, Channel ch) {
+            NodeStatusEvent statusEvent = (NodeStatusEvent) ch.event;
+            ch.node.handleAppWorkStatus(statusEvent.getAppWorks());
+            ch.node.context.getDolphinDispatcher()
+                    .getEventProcessor().process(new NodeUpdateSchedulerEvent(ch.node));
+        }
+    }
+
+    class Channel {
+        final NodeImp node;
+        final NodeEvent event;
+
+        public Channel(NodeImp node, NodeEvent event) {
+            this.node = node;
+            this.event = event;
         }
     }
 }

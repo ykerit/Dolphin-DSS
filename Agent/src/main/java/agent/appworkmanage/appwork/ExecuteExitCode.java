@@ -1,6 +1,6 @@
 package agent.appworkmanage.appwork;
 
-public enum ExitCode {
+public enum ExecuteExitCode {
     SUCCESS(0),
     INVALID_ARGUMENT_NUMBER(1),
     INVALID_COMMAND_PROVIDED(3),
@@ -28,7 +28,7 @@ public enum ExitCode {
 
     private final int code;
 
-    ExitCode(int code) {
+    ExecuteExitCode(int code) {
         this.code = code;
     }
 

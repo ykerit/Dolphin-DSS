@@ -2,19 +2,27 @@ package agent.appworkmanage;
 
 import agent.Context;
 import agent.appworkmanage.appwork.AppWork;
+import agent.appworkmanage.appwork.AppWorkImp;
 import agent.context.*;
+import common.struct.AppWorkId;
+import common.util.Tools;
 import config.Configuration;
 import config.DolphinConfiguration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 public abstract class AppWorkExecutor {
     private static final Logger log = LogManager.getLogger(AppWorkExecutor.class.getName());
+
+    private final ConcurrentMap<AppWorkId, Path> pidFiles = new ConcurrentHashMap<>();
 
     public abstract void init(Context context) throws IOException;
 
@@ -43,6 +51,28 @@ public abstract class AppWorkExecutor {
     public abstract void symLink(String target, String symlink);
 
     public abstract boolean isAppWorkAlive(AppWorkAlivenessContext ctx) throws IOException;
+
+    public enum ExitCode {
+        SUCCESS(0),
+        FORCE_KILLED(137),
+        TERMINATED(143),
+        LOST(154);
+
+        private final int code;
+
+        private ExitCode(int exitCode) {
+            this.code = exitCode;
+        }
+
+        public int getExitCode() {
+            return code;
+        }
+
+        @Override
+        public String toString() {
+            return String.valueOf(code);
+        }
+    }
 
     public enum Signal {
         NULL(0, "NULL"),
@@ -133,5 +163,25 @@ public abstract class AppWorkExecutor {
                 log.warn(msg);
             }
         }
+    }
+
+    protected Path getPidFilePath(AppWorkId appWokId) {
+        return this.pidFiles.get(appWokId);
+    }
+
+    public String getProcessId(AppWorkId appWorkId) {
+        String pid = null;
+        Path pidFile = pidFiles.get(appWorkId);
+
+        // If PID is null, this container hasn't launched yet.
+        if (pidFile != null) {
+            try {
+                pid = Tools.getProcessId(pidFile);
+            } catch (IOException e) {
+                log.error("Got exception reading pid from pid-file {}", pidFile, e);
+            }
+        }
+
+        return pid;
     }
 }

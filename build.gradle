@@ -78,3 +78,12 @@ project(':Common') {
         compile group: 'org.apache.directory.studio', name: 'org.apache.commons.io', version: '2.4'
     }
 }
+
+project(':example') {
+    dependencies {
+        implementation project(':Client')
+        implementation project(':Api')
+        implementation project(':Config')
+        implementation project(':Common')
+    }
+}
