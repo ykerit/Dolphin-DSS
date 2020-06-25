@@ -26,6 +26,10 @@ subprojects {
         compile group: 'io.dropwizard.metrics', name: 'metrics-core', version: '4.1.0'
 
         compile group: 'org.squirrelframework', name: 'squirrel-foundation', version: '0.3.8'
+
+        compile group: 'org.codehaus.jackson', name: 'jackson-core-asl', version: '1.9.13'
+
+        compile group: 'org.codehaus.jackson', name: 'jackson-mapper-asl', version: '1.9.13'
     }
 }
 

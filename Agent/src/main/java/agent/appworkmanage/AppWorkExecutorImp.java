@@ -74,7 +74,7 @@ public class AppWorkExecutorImp extends AppWorkExecutor {
 
         try {
             AppWorkLinuxRuntime runtime = new AppWorkLinuxRuntime(privilegedOperationExecutor);
-            runtime.initialize(context);
+            runtime.initialize(context.getConfiguration(), context);
             this.linuxAppWorkRuntime = runtime;
         } catch (AppWorkExecutionException e) {
             log.error("Failed to initialize AppWork Runtime", e);

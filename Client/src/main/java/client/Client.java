@@ -73,12 +73,6 @@ public class Client extends ChaosService {
             throws IOException, RemoteReadException, ClassNotFoundException {
         ApplicationIDResponse response = getApplicationID();
         int last = applicationPath.lastIndexOf('/');
-//        try {
-//            RadosFileOperation operation = new RadosFileOperation(this.cephService.getIoContext("rbd"));
-//            log.debug("application: {}", applicationName);
-//        } catch (RadosException e) {
-//            e.printStackTrace();
-//        }
         Map<String, String> env = new HashMap<>();
         env.put("run", "kk");
         AppWorkLaunchContext appWorkLaunchContext =

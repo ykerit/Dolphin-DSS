@@ -1,17 +1,19 @@
 package client.command;
 
+import api.mapreduce.Job;
+import api.mapreduce.Mapper;
+import api.mapreduce.Reducer;
 import client.Client;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import org.greatfree.exceptions.RemoteReadException;
 
 import java.io.IOException;
+import java.util.Map;
 
 public class ClientCLI {
     // run jar file
-    @Parameter(names = "-exe", description = "-e <exe> run exe file", required = true, validateWith = PositiveFile.class)
-    private String exe;
-    @Parameter(names = "-type", description = "-type <jar or binary>", required = true)
+    @Parameter(names = "-type", description = "-type <jar or binary>")
     private String type;
     // run jar file need main method
     @Parameter(names = "-name", description = "-name <name> application name")
@@ -32,9 +34,31 @@ public class ClientCLI {
             commander.usage();
             return;
         }
-        System.out.println("exe: " + exe);
         System.out.println("type: " + type);
         System.out.println("name: " + mainClass);
-        client.submitApplication(exe, type, mainClass, 1);
+        client.submitApplication(type, "jar", mainClass, 1);
+    }
+
+    public void run(JCommander commander, final Client client, Job job,
+                    Class<? extends Mapper> mapper,
+                    Class<? extends Reducer> reducer) throws Exception {
+        if (help) {
+            commander.setProgramName("dolphin client");
+            commander.usage();
+            return;
+        }
+        type = "/Users/yuankai/WordCount.jar";
+        mainClass = "WordCount";
+        input = "/Users/yuankai/Downloads/case.txt";
+        output = "/Users/yuankai/result.txt";
+        System.out.println("type: " + type);
+        System.out.println("name: " + mainClass);
+        client.submitApplication(type, "jar", mainClass, 1);
+        job.setMapperClass(mapper);
+        job.setReducerClass(reducer);
+        job.addFileInput(input);
+        job.addFileOutput(output);
+        job.waitForCompletion(true);
+        client.stop();
     }
 }

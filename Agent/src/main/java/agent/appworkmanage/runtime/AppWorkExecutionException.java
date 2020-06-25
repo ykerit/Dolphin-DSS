@@ -11,6 +11,13 @@ public class AppWorkExecutionException extends DolphinRuntimeException {
     private String output;
     private String errOutput;
 
+    public AppWorkExecutionException(Throwable throwable) {
+        super(throwable);
+        exitCode = EXIT_CODE_UNSET;
+        output = OUTPUT_UNSET;
+        errOutput = OUTPUT_UNSET;
+    }
+
     public AppWorkExecutionException(String message) {
         super(message);
         exitCode = EXIT_CODE_UNSET;

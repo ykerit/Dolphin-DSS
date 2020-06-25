@@ -2,10 +2,11 @@ package agent.appworkmanage.runtime;
 
 import agent.Context;
 import common.struct.IOStreamPair;
+import config.Configuration;
 
 public interface AppWorkRuntime {
 
-    void initialize(Context context) throws AppWorkExecutionException;
+    void initialize(Configuration configuration, Context context) throws AppWorkExecutionException;
 
     void prepareAppWork(AppWorkRuntimeContext ctx) throws AppWorkExecutionException;
 

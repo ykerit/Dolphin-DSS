@@ -61,5 +61,6 @@ public class PlacementSpec {
         LOG.info("Parsing Placement Specs: [{}]", specs);
 
         Map<String, PlacementSpec> pSpecs = new HashMap<>();
+        return  pSpecs;
     }
 }

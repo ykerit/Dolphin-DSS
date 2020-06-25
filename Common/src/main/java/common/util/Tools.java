@@ -4,6 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.*;
+import java.lang.reflect.Constructor;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -13,6 +14,8 @@ public class Tools {
     private static final long reactor = 100000000;
 
     private static Logger log = LogManager.getLogger(Tools.class);
+
+    private static final Class<?>[] EMPTY_ARRAY = new Class[]{};
 
     public static String GetCgroupPath(String subsystem) throws IOException {
         BufferedReader buffer = new BufferedReader(new FileReader(MOUNT_INFO));
@@ -111,5 +114,17 @@ public class Tools {
         }
         log.debug("Got pid {} from path {}", (processId != null ? processId : "null"), path);
         return processId;
+    }
+
+    public static <T> T newInstance(Class<T> theClass) {
+        T result;
+        try {
+            Constructor<T> meth = theClass.getDeclaredConstructor(EMPTY_ARRAY);
+            meth.setAccessible(true);
+            result = meth.newInstance();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return result;
     }
 }

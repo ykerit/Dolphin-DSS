@@ -5,6 +5,7 @@ import common.Privileged.PrivilegedOperation;
 import common.Privileged.PrivilegedOperationException;
 import common.Privileged.PrivilegedOperationExecutor;
 import common.struct.IOStreamPair;
+import config.Configuration;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
@@ -21,7 +22,7 @@ public class AppWorkLinuxRuntime implements AppWorkRuntime {
     }
 
     @Override
-    public void initialize(Context context) throws AppWorkExecutionException {
+    public void initialize(Configuration config, Context context) throws AppWorkExecutionException {
 
     }
 
