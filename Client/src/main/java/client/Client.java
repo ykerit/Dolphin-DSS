@@ -64,7 +64,10 @@ public class Client extends ChaosService {
 
     protected ApplicationIDResponse getApplicationID()
             throws IOException, RemoteReadException, ClassNotFoundException {
-        System.out.println(configuration.getDolphinMasterClientHost().getIP() + ":" + configuration.getDolphinMasterClientHost().getPort());
+        String host = configuration.getDolphinMasterClientHost().getIP() + ":"
+                + configuration.getDolphinMasterClientHost().getPort();
+        log.info("=================Dolphin Client=================");
+        log.info("Connect to DolphinMaster host: {}", host);
         return (ApplicationIDResponse) StandaloneClient.CS().read(configuration.getDolphinMasterClientHost().getIP(),
                 configuration.getDolphinMasterClientHost().getPort(), new ApplicationIDRequest());
     }
@@ -72,9 +75,9 @@ public class Client extends ChaosService {
     public SubmitApplicationResponse submitApplication(String applicationPath, String type, String name, int priority)
             throws IOException, RemoteReadException, ClassNotFoundException {
         ApplicationIDResponse response = getApplicationID();
+        log.info("Running Application: {}", response.getApplicationId());
         int last = applicationPath.lastIndexOf('/');
         Map<String, String> env = new HashMap<>();
-        env.put("run", "kk");
         AppWorkLaunchContext appWorkLaunchContext =
                 new AppWorkLaunchContext(new HashMap<>(), env, new ArrayList<>(), null);
         ApplicationSubmission applicationSubmission =
@@ -87,6 +90,15 @@ public class Client extends ChaosService {
                         Resource.newInstance(100, 2),
                         null,
                         appWorkLaunchContext);
+        StringBuilder sb = new StringBuilder();
+        sb.append("=============Application=========\n");
+        sb.append("ApplicationName: ").append(name).append("\n");
+        sb.append("Submitter: ").append("yker").append("\n");
+        sb.append("Submit pool: ").append("default").append("\n");
+        sb.append("ApplicationType: ").append("jar").append("\n");
+        sb.append("Submit Priority: ").append(priority).append("\n");
+        sb.append("=============End=========\n");
+        log.info(sb.toString());
         SubmitApplicationRequest request = new SubmitApplicationRequest(applicationSubmission, response.getApplicationId());
         SubmitApplicationResponse submitApplicationResponse = (SubmitApplicationResponse) StandaloneClient.CS().read(configuration.getDolphinMasterClientHost().getIP(),
                 configuration.getDolphinMasterClientHost().getPort(), request);

@@ -43,6 +43,6 @@ public class MapReduceTest {
         job.setReducerClass(IntSumReducer.class);
         job.addFileInput("/Users/yuankai/Downloads/case.txt");
         job.addFileOutput("/Users/yuankai/result.txt");
-        job.waitForCompletion(true);
+        job.waitForCompletion();
     }
 }

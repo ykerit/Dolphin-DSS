@@ -150,6 +150,8 @@ public class Job {
                 log.error("split file error!");
             }
             int mapperSize = fileContexts.size();
+            log.info("MapReduce Block size: {}", BLOCK_SIZE);
+            log.info("MapReduce Split size: {}", mapperSize);
             CompletionService ecs = new ExecutorCompletionService<MapContext>(taskEngine.getTaskPool());
             for (int i = 0; i < mapperSize; ++i) {
                 MapTask mapTask = new MapTask(fileContexts.get(i), mapperType);
@@ -214,7 +216,7 @@ public class Job {
         mapReducerHandler.start();
     }
 
-    public void waitForCompletion(boolean wait) {
+    public void waitForCompletion() {
         submit();
         while (!isCompleted) {
             try {
@@ -223,5 +225,11 @@ public class Job {
                 e.printStackTrace();
             }
         }
+        taskEngine.shutDown();
+        log.info("MapReduce end");
+    }
+
+    public boolean isCompleted() {
+        return isCompleted;
     }
 }

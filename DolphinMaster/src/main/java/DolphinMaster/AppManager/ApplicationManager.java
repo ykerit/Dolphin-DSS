@@ -96,9 +96,17 @@ public class ApplicationManager implements EventProcessor<ApplicationManagerEven
         ApplicationId applicationId = submission.getApplicationId();
         // 1. createApp
         // 2. context.getApps().putIfAbsent()
-        AppImp application = createAndPopulateNewApp(submission, submitTime, user, -1);
-        this.context.getDolphinDispatcher().
-                getEventProcessor().process(new AppEvent(applicationId, AppEventType.START));
+//        AppImp application = createAndPopulateNewApp(submission, submitTime, user, -1);
+//        this.context.getDolphinDispatcher().
+//                getEventProcessor().process(new AppEvent(applicationId, AppEventType.START));
+        StringBuilder sb = new StringBuilder();
+        sb.append("============submit application==========\n");
+        sb.append("applicationName: ").append(submission.getApplicationName()).append("\n");
+        sb.append("applicationId: ").append(submission.getApplicationId()).append("\n");
+        sb.append("submitter: ").append(submission.getUser()).append("\n");
+        sb.append("priority: ").append(submission.getPriority()).append("\n");
+        sb.append("============end=================\n");
+        log.info(sb.toString());
     }
 
     private AppImp createAndPopulateNewApp(ApplicationSubmission submission, long submitTime,

@@ -9,7 +9,6 @@ import com.beust.jcommander.Parameter;
 import org.greatfree.exceptions.RemoteReadException;
 
 import java.io.IOException;
-import java.util.Map;
 
 public class ClientCLI {
     // run jar file
@@ -58,7 +57,7 @@ public class ClientCLI {
         job.setReducerClass(reducer);
         job.addFileInput(input);
         job.addFileOutput(output);
-        job.waitForCompletion(true);
+        job.waitForCompletion();
         client.stop();
     }
 }
