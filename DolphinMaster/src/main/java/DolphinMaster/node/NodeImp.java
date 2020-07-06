@@ -451,10 +451,10 @@ public class NodeImp implements Node, EventProcessor<NodeEvent> {
         }
 
         protected void statusUpdate(NodeState from, NodeState to, NodeEventType type, Channel ch) {
-            NodeStatusEvent statusEvent = (NodeStatusEvent) ch.event;
-            ch.node.handleAppWorkStatus(statusEvent.getAppWorks());
-            ch.node.context.getDolphinDispatcher()
-                    .getEventProcessor().process(new NodeUpdateSchedulerEvent(ch.node));
+//            NodeStatusEvent statusEvent = (NodeStatusEvent) ch.event;
+//            ch.node.handleAppWorkStatus(statusEvent.getAppWorks());
+//            ch.node.context.getDolphinDispatcher()
+//                    .getEventProcessor().process(new NodeUpdateSchedulerEvent(ch.node));
         }
     }
 

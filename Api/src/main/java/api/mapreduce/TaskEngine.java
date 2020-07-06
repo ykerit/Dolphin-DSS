@@ -8,7 +8,7 @@ public class TaskEngine {
 
     public TaskEngine() {
         int core = Runtime.getRuntime().availableProcessors() * 2;
-        taskPool = new ThreadPoolExecutor(core, 1000, 1, TimeUnit.SECONDS, new PriorityBlockingQueue<>());
+        taskPool = new ThreadPoolExecutor(core, 1000, 1, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
     }
 
     public void submit(Callable task) {

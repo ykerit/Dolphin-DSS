@@ -55,12 +55,12 @@ public class AppWorkExecutorImp extends AppWorkExecutor {
         PrivilegedOperation checkSetupOp = new PrivilegedOperation(PrivilegedOperation.
                 OperationType.CHECK_SETUP);
         PrivilegedOperationExecutor privilegedOperationExecutor = getPrivilegedOperationExecutor();
-        try {
-            privilegedOperationExecutor.executePrivilegedOperation(checkSetupOp, false);
-        } catch (PrivilegedOperationException e) {
-            int exitCode = e.getExitCode();
-            log.warn("Exit code from AppWork executor initialize is {}", exitCode);
-        }
+//        try {
+//            privilegedOperationExecutor.executePrivilegedOperation(checkSetupOp, false);
+//        } catch (PrivilegedOperationException e) {
+//            int exitCode = e.getExitCode();
+//            log.warn("Exit code from AppWork executor initialize is {}", exitCode);
+//        }
         try {
             resourceHandlerCenter = ResourceHandlerPackage.getResourceHandlerCenter(context.getConfiguration(), context);
             if (resourceHandlerCenter != null) {

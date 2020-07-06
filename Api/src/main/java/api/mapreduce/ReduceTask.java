@@ -33,6 +33,7 @@ public class ReduceTask implements Callable<ReduceContext> {
                 getReducerContext(reduceContext);
 
         reducer.run(reducerContext);
+        System.out.println("Reduce task completed 100%");
         return reduceContext;
     }
 }

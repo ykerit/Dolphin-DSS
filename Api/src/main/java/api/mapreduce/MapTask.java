@@ -4,7 +4,7 @@ import common.util.Tools;
 
 import java.util.concurrent.Callable;
 
-public class MapTask implements Callable {
+public class MapTask implements Callable<MapContext> {
     private Class<? extends Mapper> mapClass;
     private Object data;
 
@@ -14,7 +14,7 @@ public class MapTask implements Callable {
     }
 
     @Override
-    public Object call() throws Exception {
+    public MapContext call() throws Exception {
         return runMapper();
     }
 
@@ -29,6 +29,7 @@ public class MapTask implements Callable {
         Mapper<INKEY, INVAL, OUTKEY, OUTVAL>.Context mapperContext =
                 new WrappedMapper<INKEY, INVAL, OUTKEY, OUTVAL>().getMapContext(mapContext);
         mapper.run(mapperContext);
+        System.out.println("MapTask completed 100%");
         return mapContext;
     }
 }

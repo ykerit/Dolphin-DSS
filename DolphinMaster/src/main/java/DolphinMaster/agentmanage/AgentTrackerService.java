@@ -147,13 +147,13 @@ public class AgentTrackerService extends AbstractService implements AgentTracker
         AgentId agentId = status.getAgentId();
 
         AgentHeartBeatResponse response = new AgentHeartBeatResponse();
-        if (!isValidNode(agentId)) {
-            String errMsg = "Not allowed AgentManager AgentId: " + agentId + ", hostname: " + agentId.getHostname();
-            log.info(errMsg);
-            response.setAction(AgentAction.SHUTDOWN);
-            response.setTips(errMsg);
-            return response;
-        }
+//        if (!isValidNode(agentId)) {
+//            String errMsg = "Not allowed AgentManager AgentId: " + agentId + ", hostname: " + agentId.getHostname();
+//            log.info(errMsg);
+//            response.setAction(AgentAction.SHUTDOWN);
+//            response.setTips(errMsg);
+//            return response;
+//        }
 
         AgentStatusEvent statusEvent = new AgentStatusEvent(agentId, status);
         this.dolphinContext.getDolphinDispatcher().getEventProcessor().process(statusEvent);

@@ -9,6 +9,7 @@ import common.struct.ApplicationId;
 import common.struct.RemoteAppWork;
 import org.greatfree.message.ServerMessage;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -25,12 +26,14 @@ public class AgentHeartBeatResponse extends ServerMessage {
 
     public AgentHeartBeatResponse() {
         super(MessageID.HEART_BEAT_RESPONSE);
+        this.appWorksToUpdate = new ArrayList<>();
     }
 
     public AgentHeartBeatResponse(AgentAction action, String masterToken) {
         super(MessageID.HEART_BEAT_RESPONSE);
         this.action = action;
         this.masterToken = masterToken;
+        this.appWorksToUpdate = new ArrayList<>();
     }
 
     public AgentAction getAction() {

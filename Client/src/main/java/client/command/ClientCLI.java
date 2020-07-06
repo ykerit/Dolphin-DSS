@@ -6,8 +6,10 @@ import api.mapreduce.Reducer;
 import client.Client;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import common.util.Tools;
 import org.greatfree.exceptions.RemoteReadException;
 
+import javax.tools.Tool;
 import java.io.IOException;
 
 public class ClientCLI {
@@ -46,10 +48,11 @@ public class ClientCLI {
             commander.usage();
             return;
         }
-        type = "/Users/yuankai/WordCount.jar";
+        String home = System.getProperty("user.home");
+        type = home + "/WordCount.jar";
         mainClass = "WordCount";
-        input = "/Users/yuankai/Downloads/case.txt";
-        output = "/Users/yuankai/result.txt";
+        input = home + "/case.txt";
+        output = home + "/result.txt";
         System.out.println("type: " + type);
         System.out.println("name: " + mainClass);
         client.submitApplication(type, "jar", mainClass, 1);

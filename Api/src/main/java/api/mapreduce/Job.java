@@ -226,6 +226,11 @@ public class Job {
             }
         }
         taskEngine.shutDown();
+        try {
+            Thread.sleep(2000L);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         log.info("MapReduce end");
     }
 
